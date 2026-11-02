@@ -2,7 +2,7 @@
 Dashboard de abandono de clientes · Equipo 5
 Archivo de entrada. Se ejecuta con:  streamlit run app.py
 
-RESPONSABLE: Coordinación (integrante 1)
+RESPONSABLE: Coordinación (Arlen Martínez 1)
 Este archivo solo junta las secciones. Cada sección vive en su propio
 archivo dentro de src/ para que cada integrante trabaje sin pisar a los demás.
 """
