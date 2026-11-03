@@ -1,45 +1,64 @@
 """
-Sección 01 · Panorama general (4 tarjetas KPI).
+Tarjetas de los 2 KPI principales.
 RESPONSABLE: Integrante 4
 
-QUÉ FALTA (TODO):
-- Revisar que los textos de ayuda (help=) se entiendan para alguien sin estadística.
-- Opcional: agregar una "lectura ejecutiva" de 1–2 frases debajo de las tarjetas.
+KPI 1 · Tasa de abandono (relacionada con las 3 gráficas de factores).
+KPI 2 · % de activos en perfil de riesgo (relacionada con el mapa de calor y el país).
 """
 import streamlit as st
 
-from src.config import META_RIESGO
+from src.config import AMBAR, AZUL, META_RIESGO
 from src.indicadores import resumen_riesgo, tasa_churn
 
 
-def mostrar(df, tasa_global, regla):
-    st.subheader("01 · Panorama general")
+def _html(texto):
+    """Quita la sangría: Streamlit trata las líneas con sangría como bloque de código."""
+    return "".join(linea.strip() for linea in texto.splitlines())
 
+
+def _chip(diferencia_pts, texto_base):
+    if abs(diferencia_pts) < 0.05:
+        return f'<span class="kpi-chip chip-gris">{texto_base}</span>'
+    clase = "chip-rojo" if diferencia_pts > 0 else "chip-verde"
+    flecha = "▲" if diferencia_pts > 0 else "▼"
+    return f'<span class="kpi-chip {clase}">{flecha} {abs(diferencia_pts):.1f} pts {texto_base}</span>'
+
+
+def tarjeta_churn(df, tasa_global):
     tasa = tasa_churn(df)
-    riesgo = resumen_riesgo(df, regla)
-    c1, c2, c3, c4 = st.columns(4)
+    abandonaron = int(df["Churned"].sum())
+    chip = _chip((tasa - tasa_global) * 100, f"vs. global {tasa_global:.1%}")
+    html = f"""
+    <div class="kpi kpi-azul">
+      <div class="kpi-label">Tasa de abandono</div>
+      <div class="kpi-valor" style="color:{AZUL}">{tasa:.1%}</div>
+      {chip}
+      <div class="kpi-sub"><b>{abandonaron:,}</b> abandonaron de <b>{len(df):,}</b> clientes</div>
+      <div class="kpi-barra"><div style="width:{tasa * 100:.1f}%; background:{AZUL}"></div></div>
+    </div>
+    """
+    st.markdown(_html(html), unsafe_allow_html=True)
 
-    c1.metric(
-        "Clientes analizados", f"{len(df):,}",
-        help="Clientes que quedan con los filtros actuales.",
-    )
-    c2.metric(
-        "Tasa de abandono", f"{tasa:.1%}",
-        delta=f"{(tasa - tasa_global) * 100:+.1f} pts vs. global",
-        delta_color="inverse",
-        help=f"Porcentaje de clientes que abandonaron. Referencia global: {tasa_global:.1%}.",
-    )
-    c3.metric(
-        "Clientes que abandonaron", f"{int(df['Churned'].sum()):,}",
-        help="Clientes con Churned = 1.",
-    )
-    c4.metric(
-        "Activos en perfil de riesgo", f"{riesgo['pct_activos']:.1%}",
-        delta=f"{(riesgo['pct_activos'] - META_RIESGO) * 100:+.1f} pts vs. meta",
-        delta_color="inverse",
-        help=f"Activos que cumplen la regla de riesgo / total de activos. Meta: menos de {META_RIESGO:.0%}.",
-    )
-    st.caption(
-        "La tasa de abandono es una proporción observada, no una predicción. "
-        "Las asociaciones no demuestran causalidad."
-    )
+
+def tarjeta_riesgo(df, regla):
+    r = resumen_riesgo(df, regla)
+    pct = r["pct_activos"]
+    sobre_meta = pct > META_RIESGO
+    chip_clase = "chip-rojo" if sobre_meta else "chip-verde"
+    chip_texto = ("▲ Sobre la meta" if sobre_meta else "▼ Bajo la meta") + f" de {META_RIESGO:.0%}"
+    escala = max(0.30, pct * 1.2)  # la barra llega hasta 30% o un poco más que el valor
+    html = f"""
+    <div class="kpi kpi-ambar">
+      <div class="kpi-label">Activos en perfil de riesgo</div>
+      <div class="kpi-valor" style="color:{AMBAR}">{pct:.1%}</div>
+      <span class="kpi-chip {chip_clase}">{chip_texto}</span>
+      <div class="kpi-sub"><b>{r['activos_en_perfil']:,}</b> de <b>{r['total_activos']:,}</b> activos ·
+        churn del perfil <b>{r['tasa_historica']:.1%}</b></div>
+      <div class="kpi-barra">
+        <div style="width:{pct / escala * 100:.1f}%; background:{AMBAR}"></div>
+        <div class="kpi-meta" style="left:{META_RIESGO / escala * 100:.1f}%"></div>
+      </div>
+      <div class="kpi-regla">Perfil: carrito &gt; {regla['carrito_min']:.2f}% y ≥ {regla['llamadas_min']} llamadas</div>
+    </div>
+    """
+    st.markdown(_html(html), unsafe_allow_html=True)

@@ -25,30 +25,29 @@ La app se abre en el navegador en `http://localhost:8501`.
 
 ```
 proyecto-churn/
-├── app.py                  ← archivo de entrada (junta las secciones)
+├── app.py                  ← archivo de entrada (acomoda las piezas en la pantalla)
 ├── requirements.txt
 ├── data/
 │   └── ecommerce_churn_final_comas.csv
 ├── notebooks/              ← Colab de las evidencias 1 y 2
 └── src/
-    ├── config.py           ← rutas, metas y regla de riesgo por defecto
+    ├── config.py           ← rutas, metas, rangos, nombres y colores
+    ├── estilos.py          ← CSS para que todo quepa en una pantalla
     ├── limpieza.py         ← carga y limpieza (Evidencia 1)
     ├── indicadores.py      ← cálculo de los KPI (solo pandas)
-    ├── filtros.py          ← barra lateral
-    ├── seccion_kpis.py     ← 01 · Panorama general
-    ├── seccion_factores.py ← 02 · Factores del abandono
-    └── seccion_riesgo.py   ← 03 · Perfil de alto riesgo
+    ├── filtros.py          ← panel de filtros (derecha)
+    ├── seccion_kpis.py     ← tarjetas de los 2 KPI
+    ├── seccion_factores.py ← variables del KPI 1 (llamadas, carrito, días)
+    ├── seccion_riesgo.py   ← variables del KPI 2 (carrito × llamadas, país)
+    └── ventanas.py         ← botones: todas las variables, definiciones y datos
 ```
 
 ## Indicadores
 
-| KPI | Qué mide |
-|---|---|
-| Tasa de abandono | % de clientes con `Churned = 1` (referencia global: 28.9%) |
-| Churn por llamadas a servicio | Tasa por rango de `Customer_Service_Calls` |
-| Churn por carrito abandonado | Tasa por rango de `Cart_Abandonment_Rate` |
-| Churn por días sin comprar | Tasa por rango de días desde la última compra |
-| % de activos en perfil de riesgo | Activos con carrito abandonado > 71.25% **y** 6+ llamadas, entre el total de activos. Meta: < 10% |
+| KPI | Qué mide | Variables relacionadas en pantalla |
+|---|---|---|
+| **1 · Tasa de abandono** | % de clientes con `Churned = 1` (global: 28.9%) | Churn por llamadas a servicio, carrito abandonado y días sin comprar |
+| **2 · Activos en perfil de riesgo** | Activos con carrito abandonado > 71.25% **y** 6+ llamadas, entre el total de activos. Meta: < 10% | Mapa de calor carrito × llamadas y % en riesgo por país |
 
 ## Reglas del equipo
 

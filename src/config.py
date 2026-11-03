@@ -14,7 +14,7 @@ RUTA_DATOS = CARPETA_PROYECTO / "data" / "ecommerce_churn_final_comas.csv"
 # --- Metas y referencias del equipo ---
 META_RIESGO = 0.10  # meta propuesta: menos del 10% de los activos en perfil de riesgo
 
-# --- Regla de riesgo por defecto (se puede ajustar en la barra lateral) ---
+# --- Regla de riesgo por defecto (se puede ajustar en los filtros) ---
 # Viene del árbol de decisión de la Evidencia 2: primera división en carrito
 # abandonado > 71.25% y segunda en 6 o más llamadas a servicio.
 REGLA_DEFAULT = {
@@ -22,6 +22,41 @@ REGLA_DEFAULT = {
     "llamadas_min": 6,     # Customer_Service_Calls mayor o igual a este valor
 }
 
+# --- Rangos de las variables clave (para gráficas y mapa de calor) ---
+RANGOS = {
+    "Customer_Service_Calls": ([-1, 2, 5, 8, 11, 100], ["0–2", "3–5", "6–8", "9–11", "12+"]),
+    "Cart_Abandonment_Rate": ([-1, 30, 50, 71.25, 101], ["≤30%", "30–50%", "50–71%", ">71%"]),
+    "Dias_Sin_Comprar": ([-1, 30, 60, 90, 180, 10_000], ["0–30", "31–60", "61–90", "91–180", "180+"]),
+}
+
+# --- Nombres en español para mostrar ---
+NOMBRES = {
+    "Age": "Edad",
+    "Membership_Years": "Años de membresía (log)",
+    "Login_Frequency": "Frecuencia de inicio de sesión",
+    "Session_Duration_Avg": "Duración promedio de sesión",
+    "Pages_Per_Session": "Páginas por sesión",
+    "Cart_Abandonment_Rate": "Carrito abandonado (%)",
+    "Wishlist_Items": "Lista de deseos (log)",
+    "Total_Purchases": "Total de compras (log)",
+    "Average_Order_Value": "Valor promedio de pedido (log)",
+    "Dias_Sin_Comprar": "Días sin comprar",
+    "Discount_Usage_Rate": "Uso de descuentos (%)",
+    "Returns_Rate": "Tasa de devoluciones (log)",
+    "Email_Open_Rate": "Apertura de correos (%)",
+    "Customer_Service_Calls": "Llamadas a servicio",
+    "Product_Reviews_Written": "Reseñas escritas (log)",
+    "Social_Media_Engagement_Score": "Interacción en redes",
+    "Mobile_App_Usage": "Uso de la app móvil",
+    "Payment_Method_Diversity": "Métodos de pago",
+    "Lifetime_Value": "Valor de vida del cliente (log)",
+    "Credit_Balance": "Saldo de crédito",
+}
+
 # --- Colores ---
-COLOR_BARRA = "#185FA5"
-COLOR_REFERENCIA = "#E24B4A"
+AZUL = "#185FA5"
+AZUL_CLARO = "#85B7EB"
+ROJO = "#E24B4A"
+AMBAR = "#EF9F27"
+VERDE = "#3B6D11"
+GRIS = "#888780"
