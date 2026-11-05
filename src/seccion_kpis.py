@@ -34,6 +34,11 @@ def tarjeta_clientes(df, total_base):
       <span class="kpi-chip chip-gris">{proporcion:.0%} de la base</span>
       <div class="kpi-sub"><b>{activos:,}</b> activos · <b>{abandonaron:,}</b> abandonaron</div>
       <div class="kpi-barra"><div style="width:{proporcion * 100:.1f}%; background:currentColor; opacity:0.5"></div></div>
+      <div class="kpi-info">
+        <div><b>Qué mide:</b> cuántos clientes hay con los filtros actuales.</div>
+        <div><b>Cálculo:</b> clientes de la selección, separados en activos y en los que abandonaron.</div>
+        <div><b>Cómo leerlo:</b> la etiqueta dice qué parte de los {total_base:,} clientes estás viendo.</div>
+      </div>
     </div>
     """
     st.markdown(_html(html), unsafe_allow_html=True)
@@ -49,6 +54,11 @@ def tarjeta_churn(df, tasa_global):
       {chip}
       <div class="kpi-sub"><b>{abandonaron:,}</b> abandonaron de <b>{len(df):,}</b> clientes</div>
       <div class="kpi-barra"><div style="width:{tasa * 100:.1f}%; background:{AZUL}"></div></div>
+      <div class="kpi-info">
+        <div><b>Qué mide:</b> el % de clientes de la selección que abandonaron.</div>
+        <div><b>Cálculo:</b> clientes que abandonaron ÷ total de clientes.</div>
+        <div><b>Cómo leerlo:</b> la etiqueta lo compara con la tasa global de {tasa_global:.1%}.</div>
+      </div>
     </div>
     """
     st.markdown(_html(html), unsafe_allow_html=True)
@@ -71,6 +81,11 @@ def tarjeta_riesgo(df, regla):
       <div class="kpi-barra">
         <div style="width:{pct / escala * 100:.1f}%; background:{AMBAR}"></div>
         <div class="kpi-meta" style="left:{META_RIESGO / escala * 100:.1f}%"></div>
+      </div>
+      <div class="kpi-info">
+        <div><b>Qué mide:</b> el % de activos que se parecen a los clientes que sí se fueron.</div>
+        <div><b>Cálculo:</b> activos con carrito &gt; {regla['carrito_min']:.2f}% y {regla['llamadas_min']}+ llamadas ÷ total de activos.</div>
+        <div><b>Meta:</b> menos de {META_RIESGO:.0%}. Son los clientes a contactar primero.</div>
       </div>
     </div>
     """

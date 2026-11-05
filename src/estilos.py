@@ -33,6 +33,11 @@ p.subtitulo {font-size: 0.78rem; opacity: 0.65; margin: 0;}
 .st-key-filtros div[data-testid="stVerticalBlock"] {gap: 0.35rem;}
 .st-key-filtros button p {font-size: 0.75rem !important;}
 .filtro-titulo {font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.6; margin: 0.2rem 0 0 0;}
+.kpi {position: relative;}
+.kpi-info {display: none; position: absolute; inset: 0; z-index: 10; border-radius: 12px; padding: 10px 14px;
+           background: rgba(30,30,30,0.97); color: #fff; font-size: 0.74rem; line-height: 1.35; overflow-y: auto;}
+.kpi-info b {color: #fff;}
+.kpi:hover .kpi-info {display: flex; flex-direction: column; justify-content: center; gap: 4px;}
 </style>
 """
 
