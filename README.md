@@ -56,6 +56,28 @@ proyecto-churn/
 3. Cada quien edita solo su archivo (el responsable está al inicio de cada archivo).
 4. Las rutas siempre son relativas (ver `src/config.py`).
 
+
+## Despliegue en Streamlit Cloud
+
+1. Entrar a share.streamlit.io e iniciar sesión con GitHub.
+2. Clic en "New app" y elegir el repositorio `proyecto-churn`, rama `main`.
+3. En "Main file path" escribir `app.py` y dar Deploy.
+
+### Archivos de configuración
+- `.streamlit/config.toml`: paleta de colores del dashboard (azules).
+- `requirements.txt`: librerías que Streamlit Cloud instala automáticamente. Las líneas con `#` son para la siguiente semana (modelo Gradient Boosting).
+
+### Paleta de colores
+| Nombre | Código |
+|---|---|
+| Azul marino | `#0B2545` |
+| Azul profundo | `#13315C` |
+| Azul real | `#1D4E89` |
+| Azul vivo | `#2E86DE` |
+| Azul cielo | `#7FB3E6` |
+| Azul pálido | `#D6E6F7` |
+| Azul hielo | `#EEF4FB` |
+
 ## Equipo
 
 Arlen Carolina Martínez González · José Gerardo Córdova Molina ·

@@ -14,7 +14,7 @@ p.subtitulo {font-size: 0.78rem; opacity: 0.65; margin: 0;}
 .kpi {height: 236px; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column;
       justify-content: center; gap: 6px; border: 1px solid rgba(128,128,128,0.25);}
 .kpi-azul {background: rgba(24,95,165,0.07); border-left: 5px solid #185FA5;}
-.kpi-ambar {background: rgba(239,159,39,0.09); border-left: 5px solid #EF9F27;}
+.kpi-ambar {background: rgba(46,134,222,0.09); border-left: 5px solid #2E86DE;}
 .kpi-label {font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75;}
 .kpi-valor {font-size: 2.9rem; font-weight: 700; line-height: 1;}
 .kpi-chip {display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; width: fit-content;}
