@@ -54,16 +54,17 @@ with principal:
     if b3.button("Datos", use_container_width=True):
         ventanas.ventana_datos(df_filtrado)
 
-    # Fila 1 · KPI 1 y sus variables relacionadas
-    kpi, graficas = st.columns([1, 3.3], gap="small")
-    with kpi:
+    # Fila 1 · Las 3 tarjetas KPI en una sola fila
+    k1, k2, k3 = st.columns(3, gap="small")
+    with k1:
+        seccion_kpis.tarjeta_clientes(df_filtrado, len(df))
+    with k2:
         seccion_kpis.tarjeta_churn(df_filtrado, tasa_global)
-    with graficas:
-        seccion_factores.mostrar(df_filtrado, tasa_global)
-
-    # Fila 2 · KPI 2 y sus variables relacionadas
-    kpi, graficas = st.columns([1, 3.3], gap="small")
-    with kpi:
+    with k3:
         seccion_kpis.tarjeta_riesgo(df_filtrado, regla)
-    with graficas:
-        seccion_riesgo.mostrar(df_filtrado, regla)
+
+    # Fila 2 · Gráficas de factores (a todo lo ancho)
+    seccion_factores.mostrar(df_filtrado, tasa_global)
+
+    # Fila 3 · Mapa de calor y riesgo por país (a todo lo ancho)
+    seccion_riesgo.mostrar(df_filtrado, regla)

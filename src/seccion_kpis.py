@@ -23,6 +23,20 @@ def _chip(diferencia_pts, texto_base):
     flecha = "▲" if diferencia_pts > 0 else "▼"
     return f'<span class="kpi-chip {clase}">{flecha} {abs(diferencia_pts):.1f} pts {texto_base}</span>'
 
+def tarjeta_clientes(df, total_base):
+    activos = int((df["Churned"] == 0).sum())
+    abandonaron = int(df["Churned"].sum())
+    proporcion = len(df) / total_base if total_base else 0
+    html = f"""
+    <div class="kpi kpi-gris">
+      <div class="kpi-label">Clientes totales</div>
+      <div class="kpi-valor">{len(df):,}</div>
+      <span class="kpi-chip chip-gris">{proporcion:.0%} de la base</span>
+      <div class="kpi-sub"><b>{activos:,}</b> activos · <b>{abandonaron:,}</b> abandonaron</div>
+      <div class="kpi-barra"><div style="width:{proporcion * 100:.1f}%; background:currentColor; opacity:0.5"></div></div>
+    </div>
+    """
+    st.markdown(_html(html), unsafe_allow_html=True)
 
 def tarjeta_churn(df, tasa_global):
     tasa = tasa_churn(df)
