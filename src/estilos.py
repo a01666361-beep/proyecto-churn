@@ -11,13 +11,13 @@ div[data-testid="stVerticalBlock"] {gap: 0.55rem;}
 h1.titulo {font-size: 1.25rem; font-weight: 600; margin: 0; padding: 0.15rem 0 0 0;}
 p.subtitulo {font-size: 0.78rem; opacity: 0.65; margin: 0;}
 
-.kpi {height: 175px; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column;
-      justify-content: center; gap: 6px; border: 1px solid rgba(128,128,128,0.25);}
+.kpi {height: 130px; border-radius: 12px; padding: 10px 14px; display: flex; flex-direction: column;
+      justify-content: center; gap: 4px; border: 1px solid rgba(128,128,128,0.25);}
 .kpi-azul {background: rgba(24,95,165,0.07); border-left: 5px solid #185FA5;}
 .kpi-gris {background: rgba(128,128,128,0.07); border-left: 5px solid #888780;}
 .kpi-ambar {background: rgba(46,134,222,0.09); border-left: 5px solid #2E86DE;}
 .kpi-label {font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; opacity: 0.75;}
-.kpi-valor {font-size: 2.4rem; font-weight: 700; line-height: 1;}
+.kpi-valor {font-size: 2rem; font-weight: 700; line-height: 1;}
 .kpi-chip {display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; width: fit-content;}
 .chip-rojo {background: rgba(226,75,74,0.15); color: #A32D2D;}
 .chip-verde {background: rgba(59,109,17,0.15); color: #3B6D11;}
