@@ -30,7 +30,7 @@ def figura_riesgo(df, regla, alto=236):
             z=z.values, x=[str(c) for c in z.columns], y=[str(i) for i in z.index],
             text=texto, texttemplate="%{text}", textfont_size=10,
             customdata=conteo.values,
-            colorscale=[[0, "#FAEEDA"], [0.5, "#EF9F27"], [1, "#A32D2D"]], zmin=0, zmax=100,
+            colorscale=[[0, "#EEF4FB"], [0.3, "#7FB3E6"], [0.6, "#1D4E89"], [0.8, "#13315C"], [1, "#C0392B"]], zmin=0, zmax=100,
             showscale=False,
             hovertemplate="Carrito %{y} · %{x} llamadas<br>Churn: %{z:.0f}%<br>Clientes: %{customdata:,}<extra></extra>",
         ),
@@ -39,7 +39,7 @@ def figura_riesgo(df, regla, alto=236):
     fig.update_xaxes(title_text="Llamadas a servicio", title_font_size=10, tickfont_size=10, row=1, col=1)
     fig.update_yaxes(title_text="Carrito", title_font_size=10, tickfont_size=10, row=1, col=1)
 
-    colores = [AMBAR if v > META_RIESGO else GRIS for v in pais.values]
+    colores = ["#C0392B" if v > META_RIESGO else "#7FB3E6" for v in pais.values]
     fig.add_trace(
         go.Bar(
             x=pais.values * 100, y=list(pais.index), orientation="h", marker_color=colores,
@@ -49,7 +49,7 @@ def figura_riesgo(df, regla, alto=236):
         ),
         row=1, col=2,
     )
-    fig.add_vline(x=META_RIESGO * 100, line_dash="dot", line_color="#A32D2D", line_width=1.5, row=1, col=2)
+    fig.add_vline(x=META_RIESGO * 100, line_dash="dot", line_color="#C0392B", line_width=1.5, row=1, col=2)
     tope = max(15, (pais.max() * 100 if len(pais) else 0) + 4)
     fig.update_xaxes(range=[0, tope], ticksuffix="%", tickfont_size=10,
                      gridcolor="rgba(128,128,128,0.15)", row=1, col=2)

@@ -54,9 +54,12 @@ NOMBRES = {
 }
 
 # --- Colores ---
-AZUL = "#185FA5"
-AZUL_CLARO = "#85B7EB"
-ROJO = "#E24B4A"
-AMBAR = "#EF9F27"
-VERDE = "#3B6D11"
-GRIS = "#888780"
+AZUL = "#1D4E89"        # azul real: color principal
+AZUL_CLARO = "#7FB3E6"  # azul cielo: series secundarias
+AZUL_VIVO = "#2E86DE"   # azul vivo: acentos
+AZUL_PROFUNDO = "#13315C"
+AZUL_PALIDO = "#D6E6F7"
+ROJO = "#C0392B"        # solo para cosas malas
+AMBAR = "#2E86DE"       # antes ámbar; ahora azul vivo (se mantiene el nombre para no romper imports)
+VERDE = "#1D4E89"       # antes verde; ahora azul (lo bueno también va en azul)
+GRIS = "#7FB3E6"   
