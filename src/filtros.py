@@ -29,14 +29,14 @@ def mostrar_filtros(df):
         st.session_state.setdefault(clave, valor)
 
     with st.container(key="filtros"):
-        st.markdown('<p class="filtro-titulo">Filtros</p>', unsafe_allow_html=True)
+        st.markdown('<p class="filtro-titulo">Elige qué grupo quieres ver</p>', unsafe_allow_html=True)
         paises = st.multiselect("País", sorted(df["Country"].unique()), key="f_pais", placeholder="Todos")
         generos = st.multiselect("Género", sorted(df["Gender"].unique()), key="f_genero", placeholder="Todos")
         edades = st.multiselect("Edad", sorted(df["Grupo_Edad"].unique()), key="f_edad", placeholder="Todas")
 
-        st.markdown('<p class="filtro-titulo">Regla de riesgo</p>', unsafe_allow_html=True)
-        carrito = st.slider("Carrito abandonado >", 50.0, 95.0, step=0.25, key="r_carrito", format="%.2f%%")
-        llamadas = st.slider("Llamadas ≥", 1, 12, key="r_llamadas")
+        with st.expander("Criterios de riesgo"):
+            carrito = st.slider("Carrito abandonado >", 50.0, 95.0, step=0.25, key="r_carrito", format="%.2f%%")
+            llamadas = st.slider("Llamadas ≥", 1, 12, key="r_llamadas")
 
         st.button("Limpiar filtros", on_click=_limpiar, use_container_width=True)
 

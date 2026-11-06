@@ -7,7 +7,7 @@ KPI 2 · % de activos en perfil de riesgo (relacionada con el mapa de calor y el
 """
 import streamlit as st
 
-from src.config import AMBAR, AZUL, META_RIESGO
+from src.config import AZUL, META_RIESGO, ROJO, VERDE
 from src.indicadores import resumen_riesgo, tasa_churn
 
 
@@ -18,75 +18,103 @@ def _html(texto):
 
 def _chip(diferencia_pts, texto_base):
     if abs(diferencia_pts) < 0.05:
-        return f'<span class="kpi-chip chip-gris">{texto_base}</span>'
+        mensaje = "Igual al general" if abs(diferencia_pts) < 1e-10 else "Diferencia menor a 0.05 pts"
+        return f'<span class="kpi-chip chip-azul">↔ {mensaje}</span>'
     clase = "chip-rojo" if diferencia_pts > 0 else "chip-verde"
     flecha = "▲" if diferencia_pts > 0 else "▼"
     return f'<span class="kpi-chip {clase}">{flecha} {abs(diferencia_pts):.1f} pts {texto_base}</span>'
 
-def tarjeta_clientes(df, total_base):
+def tarjeta_clientes(df, df_general):
     activos = int((df["Churned"] == 0).sum())
-    abandonaron = int(df["Churned"].sum())
-    proporcion = len(df) / total_base if total_base else 0
+    activos_general = int((df_general["Churned"] == 0).sum())
+    parte_general = activos / activos_general if activos_general else 0
+    proporcion = activos / len(df) if len(df) else 0
+    mensaje = f"{proporcion:.1%} de la selección sigue activo" if len(df) else "Sin clientes en la selección"
     html = f"""
     <div class="kpi kpi-gris">
-      <div class="kpi-label">Clientes totales</div>
-      <div class="kpi-valor">{len(df):,}</div>
-      <span class="kpi-chip chip-gris">{proporcion:.0%} de la base</span>
-      <div class="kpi-sub"><b>{activos:,}</b> activos · <b>{abandonaron:,}</b> abandonaron</div>
+      <div class="kpi-label">Clientes activos</div>
+      <div class="kpi-valor">{activos:,}</div>
+      <div class="kpi-sub"><b>{activos:,}</b> activos de <b>{len(df):,}</b> clientes en la selección</div>
+      <span class="kpi-chip chip-gris">{mensaje}</span>
+      <details class="kpi-detalle"><summary>Ver comparación y explicación</summary>
+      <div class="kpi-referencia">General sin filtros: <b>{activos_general:,}</b> activos de <b>{len(df_general):,}</b> clientes</div>
+      <div class="kpi-sub">{parte_general:.1%} de todos los activos pertenece a esta selección</div>
       <div class="kpi-barra"><div style="width:{proporcion * 100:.1f}%; background:currentColor; opacity:0.5"></div></div>
       <div class="kpi-info">
-        <div><b>Qué mide:</b> cuántos clientes hay con los filtros actuales.</div>
-        <div><b>Cálculo:</b> clientes de la selección, separados en activos y en los que abandonaron.</div>
-        <div><b>Cómo leerlo:</b> la etiqueta dice qué parte de los {total_base:,} clientes estás viendo.</div>
+        <div><b>Qué mide:</b> clientes de la selección que siguen activos (Churned = 0).</div>
+        <div><b>Cálculo:</b> activos ÷ total de clientes con los filtros actuales.</div>
+        <div><b>Cómo leerlo:</b> la cantidad, el porcentaje y la barra se actualizan con los filtros. El color es neutral porque no hay una meta definida.</div>
       </div>
+      </details>
     </div>
     """
     st.markdown(_html(html), unsafe_allow_html=True)
 
-def tarjeta_churn(df, tasa_global):
+def tarjeta_churn(df, tasa_global, df_general):
     tasa = tasa_churn(df)
     abandonaron = int(df["Churned"].sum())
     chip = _chip((tasa - tasa_global) * 100, f"vs. global {tasa_global:.1%}")
+    if df.empty:
+        chip = '<span class="kpi-chip chip-gris">Sin clientes para comparar</span>'
     html = f"""
     <div class="kpi kpi-azul">
       <div class="kpi-label">Tasa de abandono</div>
-      <div class="kpi-valor" style="color:{AZUL}">{tasa:.1%}</div>
-      {chip}
+      <div class="kpi-valor" style="color:{AZUL}">{f'{tasa:.1%}' if len(df) else '—'}</div>
       <div class="kpi-sub"><b>{abandonaron:,}</b> abandonaron de <b>{len(df):,}</b> clientes</div>
+      {chip}
+      <details class="kpi-detalle"><summary>Ver comparación y explicación</summary>
+      <div class="kpi-referencia">General sin filtros: <b>{tasa_global:.1%}</b> · <b>{int(df_general['Churned'].sum()):,}</b> de <b>{len(df_general):,}</b> clientes</div>
       <div class="kpi-barra"><div style="width:{tasa * 100:.1f}%; background:{AZUL}"></div></div>
       <div class="kpi-info">
         <div><b>Qué mide:</b> el % de clientes de la selección que abandonaron.</div>
         <div><b>Cálculo:</b> clientes que abandonaron ÷ total de clientes.</div>
         <div><b>Cómo leerlo:</b> la etiqueta lo compara con la tasa global de {tasa_global:.1%}.</div>
       </div>
+      </details>
     </div>
     """
     st.markdown(_html(html), unsafe_allow_html=True)
 
 
-def tarjeta_riesgo(df, regla):
+def tarjeta_riesgo(df, regla, df_general):
     r = resumen_riesgo(df, regla)
+    # La referencia incluye toda la base con la MISMA regla de riesgo vigente.
+    general = resumen_riesgo(df_general, regla)
+    comparacion = _chip((r["pct_activos"] - general["pct_activos"]) * 100,
+                        f"vs. general {general['pct_activos']:.1%}")
+    if not r["total_activos"] or not general["total_activos"]:
+        comparacion = '<span class="kpi-chip chip-gris">Sin activos para comparar</span>'
     pct = r["pct_activos"]
-    sobre_meta = pct > META_RIESGO
+    sobre_meta = pct >= META_RIESGO
+    color = ROJO if sobre_meta else VERDE
+    estado = "rojo" if sobre_meta else "verde"
     chip_clase = "chip-rojo" if sobre_meta else "chip-verde"
-    chip_texto = ("▲ Sobre la meta" if sobre_meta else "▼ Bajo la meta") + f" de {META_RIESGO:.0%}"
+    chip_texto = ("▲ Fuera de meta" if sobre_meta else "▼ Dentro de meta") + f" · menos de {META_RIESGO:.0%}"
+    if not r["total_activos"]:
+        color, estado, chip_clase = AZUL, "azul", "chip-gris"
+        chip_texto = "Sin activos para evaluar la meta"
     escala = max(0.30, pct * 1.2)  # la barra llega hasta 30% o un poco más que el valor
     html = f"""
-    <div class="kpi kpi-ambar">
+    <div class="kpi kpi-{estado}">
       <div class="kpi-label">Activos en perfil de riesgo</div>
-      <div class="kpi-valor" style="color:{AMBAR}">{pct:.1%}</div>
+      <div class="kpi-valor" style="color:{color}">{f'{pct:.1%}' if r['total_activos'] else '—'}</div>
+      <div class="kpi-sub"><b>{r['activos_en_perfil']:,}</b> de <b>{r['total_activos']:,}</b> activos</div>
       <span class="kpi-chip {chip_clase}">{chip_texto}</span>
-      <div class="kpi-sub"><b>{r['activos_en_perfil']:,}</b> de <b>{r['total_activos']:,}</b> activos ·
-        churn del perfil <b>{r['tasa_historica']:.1%}</b></div>
+      <details class="kpi-detalle"><summary>Ver comparación y explicación</summary>
+      <div class="kpi-referencia">General sin filtros: <b>{general['pct_activos']:.1%}</b> · <b>{general['activos_en_perfil']:,}</b> de <b>{general['total_activos']:,}</b> activos</div>
+      {comparacion}
       <div class="kpi-barra">
-        <div style="width:{pct / escala * 100:.1f}%; background:{AMBAR}"></div>
+        <div style="width:{pct / escala * 100:.1f}%; background:{color}"></div>
         <div class="kpi-meta" style="left:{META_RIESGO / escala * 100:.1f}%"></div>
       </div>
       <div class="kpi-info">
         <div><b>Qué mide:</b> el % de activos que se parecen a los clientes que sí se fueron.</div>
         <div><b>Cálculo:</b> activos con carrito &gt; {regla['carrito_min']:.2f}% y {regla['llamadas_min']}+ llamadas ÷ total de activos.</div>
         <div><b>Meta:</b> menos de {META_RIESGO:.0%}. Son los clientes a contactar primero.</div>
+        <div><b>Churn histórico del perfil:</b> {r['tasa_historica']:.1%}.</div>
+        <div><b>Referencia general:</b> toda la base con la misma regla de riesgo. Las flechas comparan segmentos, no cambios en el tiempo.</div>
       </div>
+      </details>
     </div>
     """
     st.markdown(_html(html), unsafe_allow_html=True)

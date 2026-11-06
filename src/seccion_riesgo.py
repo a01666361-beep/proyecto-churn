@@ -12,34 +12,36 @@ import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
 
-from src.config import AMBAR, GRIS, META_RIESGO
+from src.config import AZUL, AZUL_PALIDO, META_RIESGO, ROJO, VERDE
 from src.indicadores import mapa_carrito_llamadas, riesgo_por_pais
 
 
-def figura_riesgo(df, regla, alto=236):
+def figura_riesgo(df, regla, alto=260):
     tasa, conteo = mapa_carrito_llamadas(df)
     pais = riesgo_por_pais(df, regla)
 
     fig = make_subplots(rows=1, cols=2, column_widths=[0.58, 0.42], horizontal_spacing=0.12,
-                        subplot_titles=["Churn: carrito abandonado × llamadas", "Activos en riesgo por país"])
+                        subplot_titles=["¿Qué combinaciones concentran más abandono?", "Activos en riesgo por país"])
 
-    z = (tasa * 100).round(0)
-    texto = [[("" if v != v else f"{v:.0f}%") for v in fila] for fila in z.values]  # v != v → NaN
+    z = tasa * 100
+    texto = [[("Sin datos" if v != v else f"{v:.1f}%") for v in fila] for fila in z.values]
     fig.add_trace(
         go.Heatmap(
-            z=z.values, x=[str(c) for c in z.columns], y=[str(i) for i in z.index],
+            z=z.values, x=[str(c) for c in z.columns],
+            y=[str(i).replace("50–71%", "50–71.25%").replace(">71%", ">71.25%") for i in z.index],
             text=texto, texttemplate="%{text}", textfont_size=10,
             customdata=conteo.values,
-            colorscale=[[0, "#EEF4FB"], [0.3, "#7FB3E6"], [0.6, "#1D4E89"], [0.8, "#13315C"], [1, "#C0392B"]], zmin=0, zmax=100,
+            colorscale=[[0, VERDE], [0.5, AZUL_PALIDO], [1, ROJO]], zmin=0, zmax=100,
             showscale=False,
-            hovertemplate="Carrito %{y} · %{x} llamadas<br>Churn: %{z:.0f}%<br>Clientes: %{customdata:,}<extra></extra>",
+            hoverongaps=False,
+            hovertemplate="Carrito %{y} · %{x} llamadas<br>Abandono: %{z:.1f}%<br>Clientes: %{customdata:,}<extra></extra>",
         ),
         row=1, col=1,
     )
     fig.update_xaxes(title_text="Llamadas a servicio", title_font_size=10, tickfont_size=10, row=1, col=1)
-    fig.update_yaxes(title_text="Carrito", title_font_size=10, tickfont_size=10, row=1, col=1)
+    fig.update_yaxes(title_text="Carrito (%)", title_font_size=10, tickfont_size=10, row=1, col=1)
 
-    colores = ["#C0392B" if v > META_RIESGO else "#7FB3E6" for v in pais.values]
+    colores = [ROJO if v >= META_RIESGO else VERDE for v in pais.values]
     fig.add_trace(
         go.Bar(
             x=pais.values * 100, y=list(pais.index), orientation="h", marker_color=colores,
@@ -49,7 +51,7 @@ def figura_riesgo(df, regla, alto=236):
         ),
         row=1, col=2,
     )
-    fig.add_vline(x=META_RIESGO * 100, line_dash="dot", line_color="#C0392B", line_width=1.5, row=1, col=2)
+    fig.add_vline(x=META_RIESGO * 100, line_dash="dot", line_color=AZUL, line_width=1.5, row=1, col=2)
     tope = max(15, (pais.max() * 100 if len(pais) else 0) + 4)
     fig.update_xaxes(range=[0, tope], ticksuffix="%", tickfont_size=10,
                      gridcolor="rgba(128,128,128,0.15)", row=1, col=2)
@@ -66,3 +68,6 @@ def mostrar(df, regla):
         st.info("No hay clientes con esta combinación de filtros.")
         return
     st.plotly_chart(figura_riesgo(df, regla), config={"displayModeBar": False})
+    st.caption("Mapa: verde = menor tasa de abandono, rojo = mayor tasa (escala 0–100%, no es meta). "
+               "País: verde ▼ cumple menos de 10%; rojo ▲ no cumple. Las celdas con pocos clientes requieren cautela; "
+               "consulta su cantidad al pasar el cursor. Las asociaciones no demuestran causalidad.")

@@ -61,5 +61,5 @@ AZUL_PROFUNDO = "#13315C"
 AZUL_PALIDO = "#D6E6F7"
 ROJO = "#C0392B"        # solo para cosas malas
 AMBAR = "#2E86DE"       # antes ámbar; ahora azul vivo (se mantiene el nombre para no romper imports)
-VERDE = "#1D4E89"       # antes verde; ahora azul (lo bueno también va en azul)
+VERDE = "#168451"       # favorable: debajo de la meta o referencia indicada
 GRIS = "#7FB3E6"   

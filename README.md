@@ -3,6 +3,16 @@
 Dashboard de una sola página en Streamlit para analizar el abandono (churn) de
 50,000 clientes de una plataforma de e-commerce y priorizar acciones de retención.
 
+## Navegación del dashboard
+
+- Arriba: clientes activos, abandono y activos con señales de riesgo. Cada tarjeta conserva sus cantidades; **Ver comparación y explicación** abre la referencia general y el cálculo sin tapar los números.
+- A la derecha: filtros de país, género y edad; **Criterios de riesgo** conserva los controles de carrito y llamadas. **Limpiar filtros** restaura la selección y la regla iniciales.
+- Las gráficas se leen en dos columnas: llamadas, distribución del carrito, días sin comprar y combinaciones de carrito con llamadas. Los datos completos y sus cantidades siguen disponibles al pasar el cursor.
+- Debajo: se pueden desplegar la participación del grupo dentro del negocio y el riesgo por país. Los botones **Todas las variables**, **Definiciones** y **Datos** mantienen sus consultas y la descarga CSV.
+- Azul: información y referencias; verde/rojo: lectura favorable/desfavorable según la referencia indicada. La tasa general es una comparación, no una meta. La meta de riesgo es menos del 10%.
+
+Comprobación de funcionamiento: `python -m unittest discover -s tests -v`.
+
 ## Cómo correr el proyecto
 
 Requisitos: Python 3.9 o más reciente.
