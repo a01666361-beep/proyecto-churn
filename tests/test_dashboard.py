@@ -9,7 +9,7 @@ from src.indicadores import resumen_riesgo
 from src.limpieza import cargar_datos
 from src.seccion_factores import figura_factores
 from src.seccion_riesgo import figura_riesgo
-from src import vistas
+from src import resumen, vistas
 
 
 class DashboardRegression(unittest.TestCase):
@@ -45,7 +45,9 @@ class DashboardRegression(unittest.TestCase):
         self.assertEqual(len(separar_panel(originales[1], 2).layout.shapes), 1)
 
     def test_filtros_regla_y_limpieza(self):
-        a = self.app()  # abre la pantalla 01 (Andrea)
+        a = self.app()
+        a.switch_page("paginas/andrea.py").run(timeout=90)
+        self.assertFalse(a.exception)
         for valor in ["35,550", "28.9%", "2,401"]:
             self.assertIn(valor, self.contenido(a))
         a.multiselect(key="f_pais").set_value(["UK"]).run(timeout=90)
@@ -64,7 +66,10 @@ class DashboardRegression(unittest.TestCase):
 
     def test_tres_pantallas_abren(self):
         a = self.app()
-        for pagina, texto in [("paginas/luis.py", "No informada"), ("paginas/carlos.py", "No calculable")]:
+        self.assertIn("Situación actual", self.contenido(a))  # abre en el resumen general
+        for pagina, texto in [("paginas/andrea.py", "Tasa de abandono"), ("paginas/luis.py", "No informada"),
+                              ("paginas/carlos.py", "No calculable"),
+                              ("paginas/recomendaciones.py", "Cómo medirlo")]:
             with self.subTest(pagina=pagina):
                 a.switch_page(pagina).run(timeout=90)
                 self.assertFalse(a.exception, [e.message for e in a.exception])
@@ -78,6 +83,20 @@ class DashboardRegression(unittest.TestCase):
         self.assertFalse(a.exception)
         self.assertEqual(a.multiselect(key="f_pais").value, ["UK"])
         self.assertIn("7,534", " ".join(m.value for m in a.metric))
+
+    def test_resumen_y_recomendaciones(self):
+        f = resumen.factores(self.df, REGLA_DEFAULT)
+        self.assertEqual(f["perfil"]["activos"], 2401)
+        self.assertAlmostEqual(f["perfil"]["tasa_dentro"], resumen_riesgo(self.df, REGLA_DEFAULT)["tasa_historica"])
+        self.assertEqual(resumen.segmento_critico(self.df)["segmento"], "18–29")
+        lista = resumen.recomendaciones(self.df, self.df, REGLA_DEFAULT)
+        self.assertEqual(lista[0]["a_quien"], 2401)
+        self.assertEqual(resumen.recomendaciones(self.df.iloc[0:0], self.df, REGLA_DEFAULT), [])
+
+    def test_kpi_sin_tarjeta_de_clientes(self):
+        a = self.app()
+        a.switch_page("paginas/andrea.py").run(timeout=90)
+        self.assertNotIn("Clientes activos</div>", self.contenido(a))
 
     def test_calculos_de_las_pantallas(self):
         self.assertEqual(vistas.calidad_datos(self.df)["duplicados"], 0)

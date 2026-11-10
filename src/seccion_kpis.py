@@ -24,32 +24,6 @@ def _chip(diferencia_pts, texto_base):
     flecha = "▲" if diferencia_pts > 0 else "▼"
     return f'<span class="kpi-chip {clase}">{flecha} {abs(diferencia_pts):.1f} pts {texto_base}</span>'
 
-def tarjeta_clientes(df, df_general):
-    activos = int((df["Churned"] == 0).sum())
-    activos_general = int((df_general["Churned"] == 0).sum())
-    parte_general = activos / activos_general if activos_general else 0
-    proporcion = activos / len(df) if len(df) else 0
-    mensaje = f"{proporcion:.1%} de la selección sigue activo" if len(df) else "Sin clientes en la selección"
-    html = f"""
-    <div class="kpi kpi-gris">
-      <div class="kpi-label">Clientes activos</div>
-      <div class="kpi-valor">{activos:,}</div>
-      <div class="kpi-sub"><b>{activos:,}</b> activos de <b>{len(df):,}</b> clientes en la selección</div>
-      <span class="kpi-chip chip-gris">{mensaje}</span>
-      <details class="kpi-detalle"><summary>Ver comparación y explicación</summary>
-      <div class="kpi-referencia">General sin filtros: <b>{activos_general:,}</b> activos de <b>{len(df_general):,}</b> clientes</div>
-      <div class="kpi-sub">{parte_general:.1%} de todos los activos pertenece a esta selección</div>
-      <div class="kpi-barra"><div style="width:{proporcion * 100:.1f}%; background:currentColor; opacity:0.5"></div></div>
-      <div class="kpi-info">
-        <div><b>Qué mide:</b> clientes de la selección que siguen activos (Churned = 0).</div>
-        <div><b>Cálculo:</b> activos ÷ total de clientes con los filtros actuales.</div>
-        <div><b>Cómo leerlo:</b> la cantidad, el porcentaje y la barra se actualizan con los filtros. El color es neutral porque no hay una meta definida.</div>
-      </div>
-      </details>
-    </div>
-    """
-    st.markdown(_html(html), unsafe_allow_html=True)
-
 def tarjeta_churn(df, tasa_global, df_general):
     tasa = tasa_churn(df)
     abandonaron = int(df["Churned"].sum())

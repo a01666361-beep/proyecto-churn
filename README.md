@@ -2,7 +2,7 @@ https://proyecto-churn-kble5abrozjksmebbubndb.streamlit.app
 
 # Dashboard de abandono de clientes · Equipo 5
 
-Dashboard en Streamlit con **tres pantallas, una por user persona**, para analizar el abandono (churn) de
+Dashboard en Streamlit con un **resumen general**, **tres pantallas (una por user persona)** y **recomendaciones finales**, para analizar el abandono (churn) de
 50,000 clientes de una plataforma de e-commerce y priorizar acciones de retención.
 
 ## Objetivo de negocio
@@ -20,7 +20,9 @@ Dashboard en Streamlit con **tres pantallas, una por user persona**, para analiz
 | Observación | Qué cambió | Dónde quedó |
 |---|---|---|
 | Hacer una pantalla donde se vieran bien los colores | La paleta cambió a azules: azul para información y referencias, verde para lo favorable y rojo para lo desfavorable. Se documentó la paleta en este README | `.streamlit/config.toml`, `src/config.py`, `src/estilos.py` y la sección "Paleta de colores" de este README |
-| Poner KPI más pequeños | Las tarjetas se compactaron y quedaron en una sola fila arriba (clientes activos, abandono y riesgo). La explicación del cálculo se abre con "Ver comparación y explicación" para no ocupar espacio | `src/seccion_kpis.py`, `src/estilos.py` y `app.py` (fila de KPI) |
+| Poner KPI más pequeños | Las tarjetas se compactaron y quedaron en una sola fila arriba. La explicación del cálculo se abre con "Ver comparación y explicación" para no ocupar espacio | `src/seccion_kpis.py`, `src/estilos.py` y `paginas/andrea.py` (fila de KPI) |
+| Retroalimentación posterior: quitar el total de clientes; con uno o dos indicadores basta | Se quitó la tarjeta de clientes. Quedan 2 KPI: tasa de abandono y activos en perfil de riesgo | `paginas/andrea.py`, `src/seccion_kpis.py` |
+| Retroalimentación posterior: agregar un resumen general al inicio y recomendaciones finales | Pantalla 00 (situación, hallazgos y guía de uso) y pantalla 04 (acciones priorizadas con su dato de respaldo y cómo medirlas). Ambas se recalculan con los filtros | `paginas/resumen.py`, `paginas/recomendaciones.py`, `src/resumen.py` |
 
 ## Documentos del entregable
 
@@ -29,13 +31,15 @@ Dashboard en Streamlit con **tres pantallas, una por user persona**, para analiz
 
 ## Pantallas del dashboard
 
-El menú de arriba cambia de pantalla. Los filtros de la derecha (país, género, edad y **Criterios de riesgo**) son los mismos para las tres y se conservan al cambiar.
+El menú de arriba cambia de pantalla. Los filtros de la derecha (país, género, edad y **Criterios de riesgo**) son los mismos para todas las pantallas y se conservan al cambiar.
 
 | Pantalla | User persona | Pregunta que responde | Qué muestra |
 |---|---|---|---|
-| **01 · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | ¿Dónde se concentra el abandono y a qué segmentos dirigir la campaña? | KPI, churn contra meta editable (25%), dona, mapa de calor carrito × llamadas, churn por edad / país / ciudad / antigüedad con exportación CSV |
+| **00 · Resumen general** (`paginas/resumen.py`) | Todo el equipo | ¿Cuál es la situación del abandono y qué está relacionado con él? | Situación actual contra metas, 6 hallazgos (llamadas, carrito, días sin comprar, perfil de riesgo, segmento y valor) y guía de uso de las pantallas |
+| **01 · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | ¿Dónde se concentra el abandono y a qué segmentos dirigir la campaña? | 2 KPI (abandono y riesgo), churn contra meta editable (25%), dona, mapa de calor carrito × llamadas, churn por edad / país / ciudad / antigüedad con exportación CSV |
 | **02 · Alertas y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | ¿Hay alertas, los datos son confiables y quién entra a la lista? | Pestañas Monitoreo (alertas +2 pts y meta de 5%, calidad de datos), Datos (lista de activos en riesgo con búsqueda y descarga) y Definiciones |
 | **03 · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | ¿Se van los clientes valiosos y dónde invertir? | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
+| **04 · Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | ¿Qué hacer primero y cómo medir si funcionó? | Tabla de prioridades y, por acción: qué hacer, por qué (dato), activos a quienes aplica, cómo medirlo y siguientes pasos |
 
 - **Limpiar filtros** restaura la selección y la regla oficial.
 - Azul: información y referencias; verde/rojo: lectura favorable/desfavorable según la referencia indicada. La tasa general es una comparación, no una meta.
@@ -64,11 +68,13 @@ La app se abre en el navegador en `http://localhost:8501`.
 
 ```
 proyecto-churn/
-├── app.py                  ← archivo de entrada: menú de 3 pantallas y filtros
+├── app.py                  ← archivo de entrada: menú de 5 pantallas y filtros
 ├── paginas/
+│   ├── resumen.py          ← pantalla 00 · resumen general
 │   ├── andrea.py           ← pantalla 01 · priorizar campañas
 │   ├── luis.py             ← pantalla 02 · alertas, calidad, datos y definiciones
-│   └── carlos.py           ← pantalla 03 · valor del cliente y presupuesto
+│   ├── carlos.py           ← pantalla 03 · valor del cliente y presupuesto
+│   └── recomendaciones.py  ← pantalla 04 · recomendaciones finales
 ├── requirements.txt
 ├── data/
 │   └── ecommerce_churn_final_comas.csv
@@ -83,8 +89,9 @@ proyecto-churn/
     ├── seccion_factores.py ← variables del KPI 1 (llamadas, carrito, días)
     ├── seccion_riesgo.py   ← variables del KPI 2 (carrito × llamadas, país)
     ├── ventanas.py         ← botones: todas las variables, definiciones y datos
-    ├── contexto.py         ← datos y filtros compartidos por las 3 pantallas
-    └── vistas.py           ← cálculos de las 3 pantallas (solo pandas)
+    ├── contexto.py         ← datos y filtros compartidos por todas las pantallas
+    ├── vistas.py           ← cálculos de las 3 pantallas (solo pandas)
+    └── resumen.py          ← cálculos del resumen y las recomendaciones (solo pandas)
 ```
 
 ## Indicadores

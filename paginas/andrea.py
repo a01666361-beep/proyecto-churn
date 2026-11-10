@@ -22,12 +22,11 @@ st.markdown('<h2 class="seccion-titulo">Panorama para priorizar campañas</h2>',
 st.caption(f"¿Dónde se concentra el abandono y a qué segmentos conviene dar seguimiento? · "
            f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
 
-k1, k2, k3 = st.columns(3, gap="medium")
+# Dos KPI: tasa de abandono y activos en perfil de riesgo (se quitó la tarjeta de clientes por retroalimentación)
+k1, k2 = st.columns(2, gap="medium")
 with k1:
-    seccion_kpis.tarjeta_clientes(df, df_general)
-with k2:
     seccion_kpis.tarjeta_churn(df, tasa_global, df_general)
-with k3:
+with k2:
     seccion_kpis.tarjeta_riesgo(df, regla, df_general)
 
 if df.empty:
