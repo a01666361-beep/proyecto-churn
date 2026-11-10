@@ -13,6 +13,9 @@ RUTA_DATOS = CARPETA_PROYECTO / "data" / "ecommerce_churn_final_comas.csv"
 
 # --- Metas y referencias del equipo ---
 META_RIESGO = 0.05  # meta: menos del 5% de los activos en perfil de riesgo (línea base 6.75%)
+META_CHURN = 0.25   # meta propuesta de churn para Andrea (editable en la pantalla 01)
+ALERTA_PP = 0.02    # Luis: alerta si el churn de la selección supera la línea base en 2 puntos
+MINIMO_SEGMENTO = 30  # no se muestran segmentos con menos clientes
 
 # --- Regla de riesgo por defecto (se puede ajustar en los filtros) ---
 # Viene del árbol de decisión de la Evidencia 2: primera división en carrito

@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.config import AZUL, AZUL_CLARO, NOMBRES, ROJO
+from src.config import AZUL, AZUL_CLARO, META_RIESGO, NOMBRES, ROJO
 from src.indicadores import correlaciones, matriz_correlacion
 
 
@@ -80,7 +80,7 @@ def ventana_definiciones(tasa_global):
 | KPI | Cálculo | Referencia |
 |---|---|---|
 | **Tasa de abandono** | Clientes con `Churned = 1` / total de clientes de la selección | Global: {tasa_global:.1%} |
-| **Activos en perfil de riesgo** | Activos que cumplen la regla / total de activos de la selección | Meta: menos de 10% |
+| **Activos en perfil de riesgo** | Activos que cumplen la regla / total de activos de la selección | Meta: menos de {META_RIESGO:.0%} |
 | **Churn del perfil** | Churn de todos los clientes (activos y no) que cumplen la regla | Se compara con la tasa global |
 
 **Regla de riesgo:** carrito abandonado mayor al umbral **y** llamadas a servicio mayores o iguales al umbral

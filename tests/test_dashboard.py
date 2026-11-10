@@ -1,4 +1,4 @@
-"""Regresión de datos y navegación del dashboard. Ejecutar: python -m unittest discover -s tests."""
+"""Regresión de datos y de las tres pantallas. Ejecutar: python -m unittest discover -s tests."""
 import unittest
 
 from streamlit.testing.v1 import AppTest
@@ -9,6 +9,7 @@ from src.indicadores import resumen_riesgo
 from src.limpieza import cargar_datos
 from src.seccion_factores import figura_factores
 from src.seccion_riesgo import figura_riesgo
+from src import vistas
 
 
 class DashboardRegression(unittest.TestCase):
@@ -44,25 +45,16 @@ class DashboardRegression(unittest.TestCase):
         self.assertEqual(len(separar_panel(originales[1], 2).layout.shapes), 1)
 
     def test_filtros_regla_y_limpieza(self):
-        a = self.app()
-        self.assertIn("35,550", self.contenido(a))
-        self.assertIn("28.9%", self.contenido(a))
-        self.assertIn("2,401", self.contenido(a))
+        a = self.app()  # abre la pantalla 01 (Andrea)
+        for valor in ["35,550", "28.9%", "2,401"]:
+            self.assertIn(valor, self.contenido(a))
         a.multiselect(key="f_pais").set_value(["UK"]).run(timeout=90)
         self.assertFalse(a.exception)
-        texto = self.contenido(a)
-        for valor in ["5,365", "2,169", "396", "15.0%", "16.5%", "▲ 0.6 pts"]:
-            self.assertIn(valor, texto)
-        genero = a.multiselect(key="f_genero").options[0]
-        edad = a.multiselect(key="f_edad").options[0]
-        a.multiselect(key="f_genero").set_value([genero])
-        a.multiselect(key="f_edad").set_value([edad]).run(timeout=90)
-        self.assertFalse(a.exception)
-        esperado = self.df[(self.df.Country == "UK") & (self.df.Gender == genero) & (self.df.Grupo_Edad == edad)]
-        self.assertIn(f"{len(esperado):,} clientes en este grupo", self.contenido(a))
+        self.assertIn("7,534 de 50,000 clientes", " ".join(c.value for c in a.caption))
         a.slider(key="r_carrito").set_value(80.0).run(timeout=90)
         self.assertFalse(a.exception)
-        total = resumen_riesgo(self.df, {"carrito_min": 80., "llamadas_min": 6})["activos_en_perfil"]
+        uk = self.df[self.df.Country == "UK"]
+        total = resumen_riesgo(uk, {"carrito_min": 80., "llamadas_min": 6})["activos_en_perfil"]
         self.assertIn(f"{total:,}", self.contenido(a))
         next(b for b in a.button if b.label == "Limpiar filtros").click().run(timeout=90)
         self.assertFalse(a.exception)
@@ -70,21 +62,36 @@ class DashboardRegression(unittest.TestCase):
         self.assertEqual(a.slider(key="r_carrito").value, 71.25)
         self.assertIn("35,550", self.contenido(a))
 
-    def test_ventanas_y_descarga(self):
-        for nombre, contenido in [("Todas las variables", "Variable"),
-                                  ("Definiciones", "Tasa de abandono"), ("Datos", "Descargar CSV")]:
-            with self.subTest(ventana=nombre):
-                a = self.app()
-                next(b for b in a.button if b.label == nombre).click().run(timeout=90)
+    def test_tres_pantallas_abren(self):
+        a = self.app()
+        for pagina, texto in [("paginas/luis.py", "No informada"), ("paginas/carlos.py", "No calculable")]:
+            with self.subTest(pagina=pagina):
+                a.switch_page(pagina).run(timeout=90)
                 self.assertFalse(a.exception, [e.message for e in a.exception])
-                self.assertTrue(a.get("dialog"))
-                if nombre == "Datos":
-                    self.assertEqual(len(a.dataframe[0].value), 50000)
-                    self.assertTrue(a.get("download_button"))
-                elif nombre == "Todas las variables":
-                    self.assertTrue(a.selectbox)
-                else:
-                    self.assertIn(contenido, self.contenido(a))
+                valores = [m.value for m in a.metric] + [self.contenido(a)]
+                self.assertTrue(any(texto in v for v in valores))
+
+    def test_filtros_se_conservan_al_cambiar_de_pantalla(self):
+        a = self.app()
+        a.multiselect(key="f_pais").set_value(["UK"]).run(timeout=90)
+        a.switch_page("paginas/carlos.py").run(timeout=90)
+        self.assertFalse(a.exception)
+        self.assertEqual(a.multiselect(key="f_pais").value, ["UK"])
+        self.assertIn("7,534", " ".join(m.value for m in a.metric))
+
+    def test_calculos_de_las_pantallas(self):
+        self.assertEqual(vistas.calidad_datos(self.df)["duplicados"], 0)
+        edad = vistas.churn_por_segmento(self.df, "Edad")
+        self.assertEqual(edad.iloc[0]["segmento"], "18–29")
+        self.assertTrue((vistas.churn_por_segmento(self.df, "Ciudad")["clientes"] >= 30).all())
+        self.assertEqual(len(vistas.tabla_clientes(self.df, REGLA_DEFAULT)), 2401)
+        cuartiles = vistas.cuartiles_ltv(self.df, self.df)
+        self.assertEqual(cuartiles["clientes"].sum(), 50000)
+        self.assertAlmostEqual(cuartiles.iloc[-1]["tasa"], 4953 / 12496)
+        self.assertEqual(vistas.escenario(50000, 1.0), 500)
+        estados = [x["encendida"] for x in vistas.alertas(.289, .289, resumen_riesgo(self.df, REGLA_DEFAULT),
+                                                           vistas.calidad_datos(self.df))]
+        self.assertEqual(estados, [False, True, False])
 
 
 if __name__ == "__main__":

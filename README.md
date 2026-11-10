@@ -2,7 +2,7 @@ https://proyecto-churn-kble5abrozjksmebbubndb.streamlit.app
 
 # Dashboard de abandono de clientes · Equipo 5
 
-Dashboard de una sola página en Streamlit para analizar el abandono (churn) de
+Dashboard en Streamlit con **tres pantallas, una por user persona**, para analizar el abandono (churn) de
 50,000 clientes de una plataforma de e-commerce y priorizar acciones de retención.
 
 ## Objetivo de negocio
@@ -27,13 +27,18 @@ Dashboard de una sola página en Streamlit para analizar el abandono (churn) de
 - `contrato-prompt.md`: contrato del prompt (qué muestra el tablero y la forma de la salida).
 - `prompts/contrato-prompts.md`: registro de prompts del bloque 1, con su etapa del SDLC.
 
-## Navegación del dashboard
+## Pantallas del dashboard
 
-- Arriba: clientes activos, abandono y activos con señales de riesgo. Cada tarjeta conserva sus cantidades; **Ver comparación y explicación** abre la referencia general y el cálculo sin tapar los números.
-- A la derecha: filtros de país, género y edad; **Criterios de riesgo** conserva los controles de carrito y llamadas. **Limpiar filtros** restaura la selección y la regla iniciales.
-- Las gráficas se leen en dos columnas: llamadas, distribución del carrito, días sin comprar y combinaciones de carrito con llamadas. Los datos completos y sus cantidades siguen disponibles al pasar el cursor.
-- Debajo: se pueden desplegar la participación del grupo dentro del negocio y el riesgo por país. Los botones **Todas las variables**, **Definiciones** y **Datos** mantienen sus consultas y la descarga CSV.
-- Azul: información y referencias; verde/rojo: lectura favorable/desfavorable según la referencia indicada. La tasa general es una comparación, no una meta. La meta de riesgo es menos del 5%.
+El menú de arriba cambia de pantalla. Los filtros de la derecha (país, género, edad y **Criterios de riesgo**) son los mismos para las tres y se conservan al cambiar.
+
+| Pantalla | User persona | Pregunta que responde | Qué muestra |
+|---|---|---|---|
+| **01 · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | ¿Dónde se concentra el abandono y a qué segmentos dirigir la campaña? | KPI, churn contra meta editable (25%), dona, mapa de calor carrito × llamadas, churn por edad / país / ciudad / antigüedad con exportación CSV |
+| **02 · Alertas y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | ¿Hay alertas, los datos son confiables y quién entra a la lista? | Pestañas Monitoreo (alertas +2 pts y meta de 5%, calidad de datos), Datos (lista de activos en riesgo con búsqueda y descarga) y Definiciones |
+| **03 · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | ¿Se van los clientes valiosos y dónde invertir? | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
+
+- **Limpiar filtros** restaura la selección y la regla oficial.
+- Azul: información y referencias; verde/rojo: lectura favorable/desfavorable según la referencia indicada. La tasa general es una comparación, no una meta.
 
 Comprobación de funcionamiento: `python -m unittest discover -s tests -v`.
 
@@ -59,7 +64,11 @@ La app se abre en el navegador en `http://localhost:8501`.
 
 ```
 proyecto-churn/
-├── app.py                  ← archivo de entrada (acomoda las piezas en la pantalla)
+├── app.py                  ← archivo de entrada: menú de 3 pantallas y filtros
+├── paginas/
+│   ├── andrea.py           ← pantalla 01 · priorizar campañas
+│   ├── luis.py             ← pantalla 02 · alertas, calidad, datos y definiciones
+│   └── carlos.py           ← pantalla 03 · valor del cliente y presupuesto
 ├── requirements.txt
 ├── data/
 │   └── ecommerce_churn_final_comas.csv
@@ -73,7 +82,9 @@ proyecto-churn/
     ├── seccion_kpis.py     ← tarjetas de los 2 KPI
     ├── seccion_factores.py ← variables del KPI 1 (llamadas, carrito, días)
     ├── seccion_riesgo.py   ← variables del KPI 2 (carrito × llamadas, país)
-    └── ventanas.py         ← botones: todas las variables, definiciones y datos
+    ├── ventanas.py         ← botones: todas las variables, definiciones y datos
+    ├── contexto.py         ← datos y filtros compartidos por las 3 pantallas
+    └── vistas.py           ← cálculos de las 3 pantallas (solo pandas)
 ```
 
 ## Indicadores
@@ -87,8 +98,9 @@ proyecto-churn/
 
 1. La versión vigente es la rama `main` en GitHub.
 2. Antes de trabajar: **pull**. Al terminar: **push** con un mensaje claro.
-3. Cada quien edita solo su archivo (el responsable está al inicio de cada archivo).
-4. Las rutas siempre son relativas (ver `src/config.py`).
+3. Cada quien edita solo su archivo (el responsable está al inicio de cada archivo). Cada pantalla de `paginas/` tiene su responsable.
+4. Para cambios grandes, trabajar en una rama y abrir un pull request para que otra persona lo revise.
+5. Las rutas siempre son relativas (ver `src/config.py`).
 
 
 ## Despliegue en Streamlit Cloud

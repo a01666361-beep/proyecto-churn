@@ -218,3 +218,33 @@ Revisó el repositorio y redactó `contrato-prompt.md`, con pantallas, component
 - Qué observaciones del 21 de octubre se atendieron y cómo.
 - La meta de negocio final: menos de 5% (ver el README).
 - Revisar que cada componente descrito en el contrato coincida con lo que hace el dashboard.
+
+---
+
+## Prompt 8 · Tres pantallas, una por user persona
+
+**Fecha:** 10 de noviembre de 2026
+**Herramienta:** Claude (claude.ai)
+**Etapa:** diseño · implementación
+
+### El prompt, literal
+
+> Hola! Mira primero revisa estos 3 user persona. hicimos uno adicional ya que teníamos esta propuesta inicial en la presentación el profe nos pidi tener tres pantallas en el dashboard de streamlit. primero checa si ls user tienen sentido con el objetivo de negocio, solo haz eso y si no los tienen corrigelos en la presentació y explicamelos aqui, de preferencia sigue los nuevos user persona del pdf que te mande y modifica lo que tengas que modificar en la presentación  y en el pdf de los user persona porque esos son los que vamos a usar el dashbpard es el ejemplo visual todo tiene que cuadrar y solo es una guia para hacerlo en el streamlit
+
+(con el HTML del dashboard de ejemplo, la presentación y el PDF de user personas adjuntos)
+
+Seguimiento:
+
+> ahora sí, de acuerdo a la planeación de las tres pantallas con tres diferentes vistas para cada persona (tres dashboard o bueno enfocado a diferentes objetivos) dime paso a paso y dame oos codigo spara hacerlo en el github y en el streamlit y poder finalmente guardarlo para que todos lo vean y mis comaperlos lo editen
+
+### Qué devolvió
+
+Revisó los tres user personas contra el objetivo de negocio: Andrea y Luis tenían sentido; Carlos pedía ROI e ingresos que la base no permite calcular, así que lo reenfocó en el churn por nivel de Lifetime_Value. Actualizó la presentación al dataset de 50,000 clientes. Después convirtió la app en tres pantallas con `st.navigation` (`paginas/andrea.py`, `paginas/luis.py`, `paginas/carlos.py`), con los filtros compartidos en `src/contexto.py` y los cálculos en `src/vistas.py`.
+
+### Qué cambiamos de lo que devolvió
+
+- (por completar por el equipo)
+
+### Qué decidimos nosotros y no el modelo
+
+- Conservar la regla de riesgo del árbol de la Evidencia 2 (carrito > 71.25% y 6 o más llamadas) y la meta de menos de 5%, en lugar de la regla del dashboard de ejemplo.
