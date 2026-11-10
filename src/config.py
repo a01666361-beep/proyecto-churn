@@ -12,7 +12,7 @@ CARPETA_PROYECTO = Path(__file__).resolve().parent.parent
 RUTA_DATOS = CARPETA_PROYECTO / "data" / "ecommerce_churn_final_comas.csv"
 
 # --- Metas y referencias del equipo ---
-META_RIESGO = 0.10  # meta propuesta: menos del 10% de los activos en perfil de riesgo
+META_RIESGO = 0.05  # meta: menos del 5% de los activos en perfil de riesgo (línea base 6.75%)
 
 # --- Regla de riesgo por defecto (se puede ajustar en los filtros) ---
 # Viene del árbol de decisión de la Evidencia 2: primera división en carrito

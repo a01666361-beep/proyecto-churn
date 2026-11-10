@@ -1,7 +1,31 @@
+https://proyecto-churn-kble5abrozjksmebbubndb.streamlit.app
+
 # Dashboard de abandono de clientes · Equipo 5
 
 Dashboard de una sola página en Streamlit para analizar el abandono (churn) de
 50,000 clientes de una plataforma de e-commerce y priorizar acciones de retención.
+
+## Objetivo de negocio
+
+| | |
+|---|---|
+| **Decisión que habilita** | A qué clientes activos dirigir la campaña de retención, y en qué país empezar |
+| **Indicador** | % de clientes activos en perfil de riesgo (carrito abandonado > 71.25% **y** 6 o más llamadas a servicio), entre el total de activos |
+| **Línea base** | 6.75%: 2,401 de 35,550 activos (dataset completo, sin filtros) |
+| **Meta** | Bajar a menos de 5% de los activos en perfil de riesgo |
+| **Referencia (no meta)** | Tasa general de abandono: 28.9% (14,450 de 50,000 clientes) |
+
+## Observaciones de la exposición del 21 de octubre
+
+| Observación | Qué cambió | Dónde quedó |
+|---|---|---|
+| Hacer una pantalla donde se vieran bien los colores | La paleta cambió a azules: azul para información y referencias, verde para lo favorable y rojo para lo desfavorable. Se documentó la paleta en este README | `.streamlit/config.toml`, `src/config.py`, `src/estilos.py` y la sección "Paleta de colores" de este README |
+| Poner KPI más pequeños | Las tarjetas se compactaron y quedaron en una sola fila arriba (clientes activos, abandono y riesgo). La explicación del cálculo se abre con "Ver comparación y explicación" para no ocupar espacio | `src/seccion_kpis.py`, `src/estilos.py` y `app.py` (fila de KPI) |
+
+## Documentos del entregable
+
+- `contrato-prompt.md`: contrato del prompt (qué muestra el tablero y la forma de la salida).
+- `prompts/contrato-prompts.md`: registro de prompts del bloque 1, con su etapa del SDLC.
 
 ## Navegación del dashboard
 
@@ -9,7 +33,7 @@ Dashboard de una sola página en Streamlit para analizar el abandono (churn) de
 - A la derecha: filtros de país, género y edad; **Criterios de riesgo** conserva los controles de carrito y llamadas. **Limpiar filtros** restaura la selección y la regla iniciales.
 - Las gráficas se leen en dos columnas: llamadas, distribución del carrito, días sin comprar y combinaciones de carrito con llamadas. Los datos completos y sus cantidades siguen disponibles al pasar el cursor.
 - Debajo: se pueden desplegar la participación del grupo dentro del negocio y el riesgo por país. Los botones **Todas las variables**, **Definiciones** y **Datos** mantienen sus consultas y la descarga CSV.
-- Azul: información y referencias; verde/rojo: lectura favorable/desfavorable según la referencia indicada. La tasa general es una comparación, no una meta. La meta de riesgo es menos del 10%.
+- Azul: información y referencias; verde/rojo: lectura favorable/desfavorable según la referencia indicada. La tasa general es una comparación, no una meta. La meta de riesgo es menos del 5%.
 
 Comprobación de funcionamiento: `python -m unittest discover -s tests -v`.
 
@@ -19,7 +43,7 @@ Requisitos: Python 3.9 o más reciente.
 
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/USUARIO/proyecto-churn.git
+git clone https://github.com/a01666361-beep/proyecto-churn.git
 cd proyecto-churn
 
 # 2. Instalar las dependencias
@@ -57,7 +81,7 @@ proyecto-churn/
 | KPI | Qué mide | Variables relacionadas en pantalla |
 |---|---|---|
 | **1 · Tasa de abandono** | % de clientes con `Churned = 1` (global: 28.9%) | Churn por llamadas a servicio, carrito abandonado y días sin comprar |
-| **2 · Activos en perfil de riesgo** | Activos con carrito abandonado > 71.25% **y** 6+ llamadas, entre el total de activos. Meta: < 10% | Mapa de calor carrito × llamadas y % en riesgo por país |
+| **2 · Activos en perfil de riesgo** | Activos con carrito abandonado > 71.25% **y** 6+ llamadas, entre el total de activos. Meta: < 5% | Mapa de calor carrito × llamadas y % en riesgo por país |
 
 ## Reglas del equipo
 
