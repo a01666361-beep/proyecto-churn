@@ -159,7 +159,7 @@ CSS para `src/estilos.py` y un bloque `kpi-info` en cada tarjeta de `src/seccion
 ## Prompt 6 · Desplegable "Ver comparación y explicación"
 
 **Fecha:** 5 de noviembre de 2026
-**Herramienta:** POR CONFIRMAR (commit de la cuenta `figura3academy`)
+**Herramienta:** NO CONFIRMADO (commit de la cuenta `figura3academy`)
 **Etapa:** implementación
 
 ### El prompt, literal
