@@ -9,7 +9,7 @@ from src.indicadores import resumen_riesgo
 from src.limpieza import cargar_datos
 from src.seccion_factores import figura_factores
 from src.seccion_riesgo import figura_riesgo
-from src import resumen, vistas
+from src import modelo, resumen, vistas
 
 
 class DashboardRegression(unittest.TestCase):
@@ -69,7 +69,8 @@ class DashboardRegression(unittest.TestCase):
         self.assertIn("Situación actual", self.contenido(a))  # abre en el resumen general
         for pagina, texto in [("paginas/andrea.py", "Tasa de abandono"), ("paginas/luis.py", "No informada"),
                               ("paginas/carlos.py", "No calculable"),
-                              ("paginas/recomendaciones.py", "Cómo medirlo")]:
+                              ("paginas/recomendaciones.py", "Cómo medirlo"),
+                              ("paginas/clientes.py", "Niveles de riesgo")]:
             with self.subTest(pagina=pagina):
                 a.switch_page(pagina).run(timeout=90)
                 self.assertFalse(a.exception, [e.message for e in a.exception])
@@ -92,6 +93,23 @@ class DashboardRegression(unittest.TestCase):
         lista = resumen.recomendaciones(self.df, self.df, REGLA_DEFAULT)
         self.assertEqual(lista[0]["a_quien"], 2401)
         self.assertEqual(resumen.recomendaciones(self.df.iloc[0:0], self.df, REGLA_DEFAULT), [])
+
+    def test_modelo_scoring_y_segmentos(self):
+        r = modelo.entrenar_modelo(self.df)
+        self.assertGreater(r["metricas"]["AUC"], 0.75)
+        self.assertGreater(r["metricas"]["Recall"], 0.65)
+        self.assertEqual(r["n_test"], 15000)
+        puntuado = modelo.puntuar(self.df, r["modelo"])
+        puntuado["Segmento"] = modelo.entrenar_segmentos(self.df)["etiquetas"]
+        niveles = modelo.resumen_niveles(puntuado)
+        self.assertEqual(niveles["Clientes"].sum(), 50000)
+        # El churn histórico debe bajar de Alto a Medio a Bajo (el modelo ordena bien)
+        self.assertTrue(niveles["Churn histórico (%)"].is_monotonic_decreasing)
+        tabla = modelo.tabla_scoring(puntuado)
+        self.assertTrue((tabla["Estado"] == "Activo").all())
+        self.assertTrue(tabla["Probabilidad de churn (%)"].is_monotonic_decreasing)
+        perfil = modelo.perfil_segmentos(puntuado)
+        self.assertEqual(list(perfil["Segmento"]), modelo.NOMBRES_SEGMENTO)
 
     def test_kpi_sin_tarjeta_de_clientes(self):
         a = self.app()
