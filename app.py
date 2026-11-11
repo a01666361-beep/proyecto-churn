@@ -5,6 +5,7 @@
 02 Luis Ramírez · operaciones de datos/CRM → paginas/luis.py
 03 Carlos Mendoza · estrategia y valor     → paginas/carlos.py
 04 Recomendaciones finales                 → paginas/recomendaciones.py
+05 Clientes prioritarios (modelo)          → paginas/clientes.py
 
 Los filtros (país, género, edad y criterios de riesgo) están a la derecha y son
 los mismos para todas las pantallas.
@@ -24,6 +25,7 @@ pantalla = st.navigation([
     st.Page("paginas/luis.py", title="02 · Luis · Alertas y calidad", icon=":material/notifications:"),
     st.Page("paginas/carlos.py", title="03 · Carlos · Valor y presupuesto", icon=":material/payments:"),
     st.Page("paginas/recomendaciones.py", title="04 · Recomendaciones", icon=":material/task_alt:"),
+    st.Page("paginas/clientes.py", title="05 · Clientes prioritarios", icon=":material/person_search:"),
 ], position="top")
 
 st.markdown('<h1 class="titulo">Abandono de clientes</h1>', unsafe_allow_html=True)

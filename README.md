@@ -39,6 +39,7 @@ El menú de arriba cambia de pantalla. Los filtros de la derecha (país, género
 | **01 · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | ¿Dónde se concentra el abandono y a qué segmentos dirigir la campaña? | 2 KPI (abandono y riesgo), churn contra meta editable (25%), dona, mapa de calor carrito × llamadas, churn por edad / país / ciudad / antigüedad con exportación CSV |
 | **02 · Alertas y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | ¿Hay alertas, los datos son confiables y quién entra a la lista? | Pestañas Monitoreo (alertas +2 pts y meta de 5%, calidad de datos), Datos (lista de activos en riesgo con búsqueda y descarga) y Definiciones |
 | **03 · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | ¿Se van los clientes valiosos y dónde invertir? | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
+| **05 · Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | ¿A qué clientes contactar primero y qué explica su riesgo? | Pestañas Scoring (toda la base ordenada por probabilidad, niveles Alto/Medio/Bajo, descarga CSV), Segmentos (4 clusters con perfil y nombre) y Modelo y variables (métricas, matriz de confusión y coeficientes) |
 | **04 · Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | ¿Qué hacer primero y cómo medir si funcionó? | Tabla de prioridades y, por acción: qué hacer, por qué (dato), activos a quienes aplica, cómo medirlo y siguientes pasos |
 
 - **Limpiar filtros** restaura la selección y la regla oficial.
@@ -74,7 +75,8 @@ proyecto-churn/
 │   ├── andrea.py           ← pantalla 01 · priorizar campañas
 │   ├── luis.py             ← pantalla 02 · alertas, calidad, datos y definiciones
 │   ├── carlos.py           ← pantalla 03 · valor del cliente y presupuesto
-│   └── recomendaciones.py  ← pantalla 04 · recomendaciones finales
+│   ├── recomendaciones.py  ← pantalla 04 · recomendaciones finales
+│   └── clientes.py         ← pantalla 05 · scoring, segmentos y modelo
 ├── requirements.txt
 ├── data/
 │   └── ecommerce_churn_final_comas.csv
@@ -91,7 +93,8 @@ proyecto-churn/
     ├── ventanas.py         ← botones: todas las variables, definiciones y datos
     ├── contexto.py         ← datos y filtros compartidos por todas las pantallas
     ├── vistas.py           ← cálculos de las 3 pantallas (solo pandas)
-    └── resumen.py          ← cálculos del resumen y las recomendaciones (solo pandas)
+    ├── resumen.py          ← cálculos del resumen y las recomendaciones (solo pandas)
+    └── modelo.py           ← regresión logística, scoring y segmentos K-Means (scikit-learn)
 ```
 
 ## Indicadores
@@ -100,6 +103,17 @@ proyecto-churn/
 |---|---|---|
 | **1 · Tasa de abandono** | % de clientes con `Churned = 1` (global: 28.9%) | Churn por llamadas a servicio, carrito abandonado y días sin comprar |
 | **2 · Activos en perfil de riesgo** | Activos con carrito abandonado > 71.25% **y** 6+ llamadas, entre el total de activos. Meta: < 5% | Mapa de calor carrito × llamadas y % en riesgo por país |
+
+## Modelo predictivo
+
+| Elemento | Decisión |
+|---|---|
+| Modelo | Regresión logística (`src/modelo.py`) con 20 variables numéricas estandarizadas y 3 categóricas (género, país, trimestre de alta). `City` se dejó fuera por tener demasiadas categorías |
+| División | 70% entrenamiento / 30% prueba, estratificada, `random_state=0` |
+| Balanceo | `class_weight="balanced"`: sin balancear, el recall era de 39%; con balanceo sube a 70% |
+| Métricas (prueba) | AUC 0.771 · Recall 70.4% · Precisión 48.6% · F1 0.575 · Accuracy 69.9% (línea base 71.1%) |
+| Niveles de riesgo | Alto ≥ 70% · Medio 40% a 70% · Bajo < 40%. Churn histórico por nivel: 65.5%, 32.2% y 11.6% |
+| Segmentos | K-Means con 4 grupos sobre 12 variables de comportamiento: Comprometidos (18.2% churn), Regulares (18.4%), En enfriamiento (30.0%) y Desconectados (48.3%) |
 
 ## Reglas del equipo
 
