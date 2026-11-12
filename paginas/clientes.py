@@ -87,12 +87,12 @@ with segmentos:
     st.markdown("**Perfil promedio de cada segmento**")
     st.dataframe(perfil.drop(columns="Descripción"), hide_index=True, use_container_width=True)
 
-    with st.expander("¿Por qué 4 segmentos?"):
+    with st.expander(f"¿Por qué {M.NUM_SEGMENTOS} segmentos?"):
         st.dataframe(silueta(), hide_index=True)
-        st.caption("La silueta mide qué tan separados quedan los grupos (de −1 a 1). Es baja con cualquier número de "
-                   "grupos (los clientes forman un continuo de más a menos activos, no grupos muy distintos). Con 3 "
-                   "grupos es un poco más alta, pero con 4 se separa un segmento intermedio con 30% de churn que "
-                   "con 3 grupos queda mezclado con clientes de bajo riesgo.")
+        st.caption("Con el método del codo, el WCSS deja de bajar de forma importante después de 3 grupos, y la "
+                   "silueta (de −1 a 1, mayor es mejor) es más alta con 3 que con cualquier número mayor. Con 4 "
+                   "grupos, dos quedaban con un churn casi igual (18.2% y 18.4%), así que no se justificaba separarlos. "
+                   "Análisis completo en notebooks/Equipo5_KMeans_Clustering.ipynb.")
 
 # ================================================================== Modelo
 with modelo_tab:
