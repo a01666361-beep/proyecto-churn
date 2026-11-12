@@ -22,7 +22,7 @@ pantalla = st.navigation([
     st.Page("paginas/carlos.py", title="03 · Carlos · Valor y presupuesto", icon=":material/payments:"),
 ], position="top")
 
-st.markdown('<h1 class="titulo">Abandono de clientes</h1>', unsafe_allow_html=True)
+estilos.encabezado("Abandono de clientes")
 principal, lateral = st.columns([4, 1], gap="large")
 with lateral:
     preparar()

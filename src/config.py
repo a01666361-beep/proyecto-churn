@@ -56,13 +56,34 @@ NOMBRES = {
     "Credit_Balance": "Saldo de crédito",
 }
 
-# --- Colores ---
-AZUL = "#1D4E89"        # azul real: color principal
-AZUL_CLARO = "#7FB3E6"  # azul cielo: series secundarias
-AZUL_VIVO = "#2E86DE"   # azul vivo: acentos
-AZUL_PROFUNDO = "#13315C"
-AZUL_PALIDO = "#D6E6F7"
-ROJO = "#C0392B"        # solo para cosas malas
-AMBAR = "#2E86DE"       # antes ámbar; ahora azul vivo (se mantiene el nombre para no romper imports)
-VERDE = "#168451"       # favorable: debajo de la meta o referencia indicada
-GRIS = "#7FB3E6"   
+# --- Colores: identidad CartPulse Analytics (paleta petróleo–ámbar) ---
+# Paleta oficial (de oscuro a cálido)
+NOCHE = "#001219"       # texto principal, panel de filtros
+PETROLEO = "#005F73"    # COLOR DOMINANTE: acciones, foco, encabezados, logo
+TURQUESA = "#0A9396"    # favorable / retención
+MENTA = "#94D2BD"       # series secundarias, acentos sobre fondo oscuro
+ARENA = "#E9D8A6"       # neutro / punto medio
+AMBAR = "#EE9B00"       # riesgo / atención
+NARANJA = "#CA6702"     # alerta media
+OXIDO = "#BB3E03"       # alerta alta
+CARMIN = "#AE2012"      # lo malo (churn)
+VINO = "#9B2226"        # lo muy malo / extremos
+
+# Versiones oscuras SOLO para texto sobre fondo blanco
+TURQUESA_TEXTO = "#087F82"
+AMBAR_TEXTO = "#A35A00"
+
+# Nombres que ya usa el dashboard (no cambiar los nombres, solo los valores)
+AZUL = PETROLEO         # color principal
+AZUL_CLARO = MENTA      # series secundarias
+AZUL_VIVO = TURQUESA    # acentos
+AZUL_PROFUNDO = NOCHE
+AZUL_PALIDO = ARENA     # punto medio neutro de los mapas de calor
+ROJO = CARMIN           # solo para cosas malas
+VERDE = TURQUESA        # favorable: debajo de la meta o referencia indicada
+GRIS = "#7A8C93"        # neutro
+# compatibilidad con la versión anterior del kit
+CIAN, VERDE_VIVO, LIMA, GRIS_UI = PETROLEO, TURQUESA, MENTA, NOCHE
+
+# Orden de colores para gráficas con varias series
+PALETA = [PETROLEO, AMBAR, TURQUESA, OXIDO, MENTA, NARANJA, VINO, NOCHE]
