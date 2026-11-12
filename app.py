@@ -35,7 +35,7 @@ pantalla = st.navigation([
     st.Page("paginas/clientes.py", title="05 · Clientes prioritarios", icon=":material/person_search:"),
 ], position="top")
 
-st.markdown('<h1 class="titulo">Abandono de clientes</h1>', unsafe_allow_html=True)
+estilos.encabezado("Abandono de clientes")
 principal, lateral = st.columns([4, 1], gap="large")
 with lateral:
     preparar()

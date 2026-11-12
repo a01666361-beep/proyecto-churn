@@ -1,6 +1,13 @@
 [theme]
-primaryColor = "#2E86DE"
+# Identidad CartPulse Analytics (paleta petróleo–ámbar)
+base = "light"
+primaryColor = "#005F73"              # Azul petróleo: botones, pestaña activa, foco
 backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#EEF4FB"
-textColor = "#0B2545"
-font = "sans serif"
+secondaryBackgroundColor = "#F3F6F6"
+textColor = "#001219"                 # Noche
+linkColor = "#005F73"
+borderColor = "#DCE5E6"
+baseRadius = "10px"
+font = "Outfit:https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+headingFont = "Outfit:https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
+chartCategoricalColors = ["#005F73", "#EE9B00", "#0A9396", "#BB3E03", "#94D2BD", "#CA6702", "#9B2226", "#001219"]
