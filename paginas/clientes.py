@@ -8,7 +8,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src import modelo as M
-from src.config import AZUL, ROJO, VERDE
+from src.config import AZUL, AZUL_PALIDO, ROJO, VERDE
 from src.contexto import contexto, obtener_datos
 from src.tablas_datos import configuracion_columnas
 
@@ -123,7 +123,7 @@ with modelo_tab:
             x=["Predice: se queda", "Predice: abandona"], y=["Real: se queda", "Real: abandona"],
             text=[[f"{mt['VN']:,}<br>verdaderos negativos", f"{mt['FP']:,}<br>falsos positivos"],
                   [f"{mt['FN']:,}<br>falsos negativos", f"{mt['VP']:,}<br>verdaderos positivos"]],
-            texttemplate="%{text}", colorscale=[[0, "#EEF3F9"], [1, AZUL]], showscale=False))
+            texttemplate="%{text}", colorscale=[[0, AZUL_PALIDO], [1, AZUL]], showscale=False))
         fig.update_layout(height=300, margin=dict(l=10, r=10, t=10, b=10), yaxis_autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
     with derecha:

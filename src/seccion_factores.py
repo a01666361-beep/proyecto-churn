@@ -2,7 +2,7 @@
 import plotly.graph_objects as go
 import streamlit as st
 from plotly.subplots import make_subplots
-from src.config import AZUL, ROJO, VERDE
+from src.config import AZUL, RELLENO_CIAN, RELLENO_NARANJA, ROJO, VERDE
 from src.indicadores import tasa_por_rango
 
 
@@ -40,7 +40,7 @@ def figura_factores(df, tasa_global, alto=280):
             q1=[q1], median=[mediana], q3=[q3],
             lowerfence=[valores.min()], upperfence=[valores.max()],
             boxpoints=False, line_color=color,
-            fillcolor="rgba(22,132,81,0.18)" if estado == 0 else "rgba(192,57,43,0.18)",
+            fillcolor=RELLENO_CIAN if estado == 0 else RELLENO_NARANJA,
             hoverinfo="all",
         ), row=1, col=2)
     fig.update_yaxes(range=[-3, 103], ticksuffix="%", title_text="Carrito abandonado (%)", row=1, col=2)

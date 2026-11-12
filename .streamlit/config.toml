@@ -1,13 +1,24 @@
 [theme]
-# Identidad CartPulse Analytics (paleta petróleo–ámbar)
-base = "light"
-primaryColor = "#005F73"              # Azul petróleo: botones, pestaña activa, foco
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#F3F6F6"
-textColor = "#001219"                 # Noche
-linkColor = "#005F73"
-borderColor = "#DCE5E6"
-baseRadius = "10px"
-font = "Outfit:https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
-headingFont = "Outfit:https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap"
-chartCategoricalColors = ["#005F73", "#EE9B00", "#0A9396", "#BB3E03", "#94D2BD", "#CA6702", "#9B2226", "#001219"]
+# Identidad CartPulse Analytics: paleta complementaria de la UI de análisis
+# Fondo #1A1D24 · Tarjetas #293545 · Azul de datos #007BFF · Naranja de advertencia #FFA03A
+# Cian de énfasis #3FD8E0 · Gris de texto secundario #B0B7C3 · Blanco de texto #FFFFFF
+base = "dark"
+primaryColor = "#007BFF"              # Azul de datos: botones, pestaña activa, foco
+backgroundColor = "#1A1D24"           # Fondo principal
+secondaryBackgroundColor = "#293545"  # Fondo de tarjetas
+textColor = "#FFFFFF"
+linkColor = "#4DA3FF"
+borderColor = "#343B4A"
+baseRadius = "6px"
+# Colores que Streamlit usa en st.metric (delta), st.badge, avisos, etc.
+# "Malo" = naranja de advertencia, "bueno" = cian de énfasis.
+redColor = "#FFA03A"
+orangeColor = "#FFA03A"
+greenColor = "#3FD8E0"
+blueColor = "#007BFF"
+# Letra de la presentación: títulos Century Gothic, texto Calibri.
+# En la web se cargan sus equivalentes libres (Jost y Carlito); si la compu
+# tiene Century Gothic / Calibri instaladas, el CSS de estilos.py las usa primero.
+font = "Carlito:https://fonts.googleapis.com/css2?family=Carlito:wght@400;700&display=swap"
+headingFont = "Jost:https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap"
+chartCategoricalColors = ["#007BFF", "#FFA03A", "#3FD8E0", "#B0B7C3", "#4DA3FF", "#FFFFFF"]

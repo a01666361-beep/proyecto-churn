@@ -56,34 +56,49 @@ NOMBRES = {
     "Credit_Balance": "Saldo de crédito",
 }
 
-# --- Colores: identidad CartPulse Analytics (paleta petróleo–ámbar) ---
-# Paleta oficial (de oscuro a cálido)
-NOCHE = "#001219"       # texto principal, panel de filtros
-PETROLEO = "#005F73"    # COLOR DOMINANTE: acciones, foco, encabezados, logo
-TURQUESA = "#0A9396"    # favorable / retención
-MENTA = "#94D2BD"       # series secundarias, acentos sobre fondo oscuro
-ARENA = "#E9D8A6"       # neutro / punto medio
-AMBAR = "#EE9B00"       # riesgo / atención
-NARANJA = "#CA6702"     # alerta media
-OXIDO = "#BB3E03"       # alerta alta
-CARMIN = "#AE2012"      # lo malo (churn)
-VINO = "#9B2226"        # lo muy malo / extremos
+# --- Colores: identidad CartPulse Analytics (paleta complementaria de la UI de análisis) ---
+# Solo 7 colores. Naranja = alertas / lo malo. Cian = lo favorable y lo activo.
+FONDO = "#1A1D24"       # fondo principal (app y panel de filtros)
+TARJETA = "#293545"     # fondo de tarjetas y contenedores de datos
+AZUL_DATOS = "#007BFF"  # COLOR PRINCIPAL: números, barras, botones
+NARANJA = "#FFA03A"     # advertencia: alertas, churn alto, lo malo
+CIAN = "#3FD8E0"        # énfasis: estados activos, filtros, lo favorable
+GRIS_TEXTO = "#B0B7C3"  # texto secundario, ayudas e íconos
+BLANCO = "#FFFFFF"      # texto principal
 
-# Versiones oscuras SOLO para texto sobre fondo blanco
-TURQUESA_TEXTO = "#087F82"
-AMBAR_TEXTO = "#A35A00"
+# Tonos de apoyo (derivados de la paleta, solo cuando hace falta)
+AZUL_SUAVE = "#3A6EA5"  # barras "por debajo del promedio" junto a AZUL_DATOS
+AZUL_TEXTO = "#4DA3FF"  # azul para texto pequeño sobre fondo oscuro
+LINEA = "#343B4A"       # bordes y cuadrícula
 
 # Nombres que ya usa el dashboard (no cambiar los nombres, solo los valores)
-AZUL = PETROLEO         # color principal
-AZUL_CLARO = MENTA      # series secundarias
-AZUL_VIVO = TURQUESA    # acentos
-AZUL_PROFUNDO = NOCHE
-AZUL_PALIDO = ARENA     # punto medio neutro de los mapas de calor
-ROJO = CARMIN           # solo para cosas malas
-VERDE = TURQUESA        # favorable: debajo de la meta o referencia indicada
-GRIS = "#7A8C93"        # neutro
-# compatibilidad con la versión anterior del kit
-CIAN, VERDE_VIVO, LIMA, GRIS_UI = PETROLEO, TURQUESA, MENTA, NOCHE
+AZUL = AZUL_DATOS       # color principal
+AZUL_CLARO = AZUL_SUAVE # serie secundaria
+AZUL_VIVO = CIAN        # acentos
+AZUL_PROFUNDO = TARJETA
+AZUL_PALIDO = TARJETA   # punto medio neutro de los mapas de calor
+ROJO = NARANJA          # lo malo (desfavorable) = naranja de advertencia
+VERDE = CIAN            # lo favorable = cian de énfasis
+GRIS = GRIS_TEXTO       # neutro
+
+# Alias de versiones anteriores del kit (para no romper nada)
+NOCHE = GRAFITO = FONDO
+MARINO = CIELO = TARJETA
+PETROLEO = MARINO_OSCURO = TARJETA
+CERULEO = AZUL_FUERTE = AZUL_BARRA = AZUL_DATOS
+CELESTE = AZUL_BRILLO = AZUL_TEXTO
+TURQUESA = MENTA = CIAN
+AMBAR = AMARILLO = NARANJA
+ROJO_CLARO = CARMIN = OXIDO = VINO = NARANJA
+ARENA = TARJETA
+TEXTO, TEXTO_SUAVE = BLANCO, GRIS_TEXTO
+TURQUESA_TEXTO, AMBAR_TEXTO, ROJO_TEXTO = CIAN, NARANJA, NARANJA
+VERDE_VIVO, LIMA, GRIS_UI = CIAN, CIAN, FONDO
+
+# Rellenos transparentes (cajas, áreas)
+RELLENO_AZUL = "rgba(0,123,255,0.18)"
+RELLENO_NARANJA = "rgba(255,160,58,0.18)"
+RELLENO_CIAN = "rgba(63,216,224,0.18)"
 
 # Orden de colores para gráficas con varias series
-PALETA = [PETROLEO, AMBAR, TURQUESA, OXIDO, MENTA, NARANJA, VINO, NOCHE]
+PALETA = [AZUL_DATOS, NARANJA, CIAN, GRIS_TEXTO, AZUL_SUAVE, BLANCO]

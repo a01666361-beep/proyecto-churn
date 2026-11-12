@@ -11,7 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.config import AZUL, AZUL_CLARO, META_RIESGO, NOMBRES, ROJO
+from src.config import AZUL, AZUL_CLARO, AZUL_PALIDO, META_RIESGO, NOMBRES, ROJO
 from src.indicadores import correlaciones, matriz_correlacion
 from src.tablas_datos import configuracion_columnas
 
@@ -64,7 +64,7 @@ def ventana_variables(df, tasa_global):
         nombres = [_nombre(c) if c != "Churned" else "Abandono" for c in m.columns]
         fig = go.Figure(go.Heatmap(
             z=m.values, x=nombres, y=nombres, zmin=-1, zmax=1,
-            colorscale=[[0, AZUL], [0.5, "#F1EFE8"], [1, ROJO]],
+            colorscale=[[0, AZUL], [0.5, AZUL_PALIDO], [1, ROJO]],
             text=m.round(2).values, texttemplate="%{text}", textfont_size=9, showscale=False,
             hovertemplate="%{y} · %{x}: %{z:.2f}<extra></extra>",
         ))
