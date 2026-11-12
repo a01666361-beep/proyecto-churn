@@ -13,10 +13,17 @@ los mismos para todas las pantallas.
 import streamlit as st
 
 from src import estilos
-from src.contexto import preparar
+from src.contexto import preparar, obtener_datos
+from src.contrato_datos import ErrorContrato
 
 st.set_page_config(page_title="Churn · Equipo 5", page_icon="📉", layout="wide",
                    initial_sidebar_state="collapsed")
+try:
+    obtener_datos()  # antes de dibujar el dashboard
+except (ErrorContrato, ValueError, FileNotFoundError) as exc:
+    st.error("No se puede publicar el dashboard: datos fuera de contrato")
+    st.code(str(exc))
+    st.stop()
 estilos.aplicar()
 
 pantalla = st.navigation([

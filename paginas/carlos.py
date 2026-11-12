@@ -54,12 +54,13 @@ with derecha:
     with st.container(border=True, key="tabla_paises"):
         st.markdown("### Segmentos de valor por país")
         paises = valor_por_pais(df, regla)
-        st.dataframe(paises, hide_index=True, use_container_width=True, height=330, column_config={
+        st.dataframe(paises, column_order=list(paises.columns), hide_index=True, use_container_width=True, height=330, column_config={
             "Churn": st.column_config.ProgressColumn(format="percent", min_value=0, max_value=1),
             "Mediana LTV": st.column_config.NumberColumn(format="%.3f"),
             "Clientes": st.column_config.NumberColumn(format="localized"),
             "Activos en riesgo": st.column_config.NumberColumn(format="localized"),
         })
+        st.caption("Origen: País procede del CSV; Clientes, Churn, Mediana LTV y Activos en riesgo son cálculos con datos observados, la mediana LTV conserva la escala logarítmica y no es una moneda")
         st.caption("Ordenado por churn. Es descriptivo, no una recomendación automática de presupuesto.")
         st.download_button("Exportar análisis (CSV)", paises.to_csv(index=False).encode("utf-8"),
                            file_name="valor_por_pais.csv", mime="text/csv")
@@ -70,8 +71,8 @@ with izquierda:
         st.markdown("### Escenario de mejora del churn")
         puntos = st.slider("Reducción hipotética (puntos porcentuales)", 0.5, 5.0, 1.0, 0.5, key="c_puntos")
         alto_valor = cuartiles.iloc[-1]
-        st.metric("Clientes que se retendrían", f"{escenario(r['clientes'], puntos):,}")
-        st.metric("De ellos, de valor alto (Q4)", f"{escenario(int(alto_valor['clientes']), puntos):,}")
+        st.metric("SIMULACIÓN · Clientes que se retendrían", f"{escenario(r['clientes'], puntos):,}")
+        st.metric("SIMULACIÓN · De valor alto (Q4)", f"{escenario(int(alto_valor['clientes']), puntos):,}")
         st.caption("Clientes × reducción supuesta. Es una simulación aritmética, no un pronóstico del efecto de una campaña.")
 with derecha:
     with st.container(border=True):

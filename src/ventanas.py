@@ -13,6 +13,7 @@ import streamlit as st
 
 from src.config import AZUL, AZUL_CLARO, META_RIESGO, NOMBRES, ROJO
 from src.indicadores import correlaciones, matriz_correlacion
+from src.tablas_datos import configuracion_columnas
 
 
 def _nombre(col):
@@ -97,6 +98,7 @@ están guardadas en escala log(1 + x); los días sin comprar se muestran ya conv
 @st.dialog("Datos", width="large")
 def ventana_datos(df):
     st.caption(f"{len(df):,} clientes con los filtros actuales")
-    st.dataframe(df, height=420, hide_index=True)
+    st.dataframe(df, height=420, hide_index=True, column_order=list(df.columns),
+                 column_config=configuracion_columnas(df))
     st.download_button("Descargar CSV", df.to_csv(index=False).encode("utf-8"),
                        file_name="clientes_filtrados.csv", mime="text/csv")
