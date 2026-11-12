@@ -9,6 +9,9 @@ from src.config import ALERTA_PP, META_RIESGO
 from src.contexto import contexto
 from src.indicadores import resumen_riesgo, tasa_churn
 from src.vistas import DEFINICIONES, alertas, calidad_datos, tabla_clientes
+from src.contrato_datos import resumen_validacion
+from src.demo_validaciones import CASOS as CASOS_DEMO, crear_demostracion
+from src.tablas_datos import configuracion_columnas
 
 c = contexto()
 df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
@@ -24,6 +27,9 @@ with monitoreo:
     tasa = tasa_churn(df)
     riesgo = resumen_riesgo(df, regla)
     calidad = calidad_datos(df_general)  # la calidad se revisa sobre la base completa
+    llamadas_fraccionarias = int((df_general["Customer_Service_Calls"] % 1 != 0).sum())
+    if llamadas_fraccionarias:
+        st.warning(f"Hay {llamadas_fraccionarias:,} registros con llamadas fraccionarias en el CSV; se conservan sin redondear hasta aclarar su origen.")
 
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("Churn de la selección", f"{tasa:.1%}" if len(df) else "—",
@@ -75,6 +81,38 @@ with monitoreo:
 | Meta de activos en riesgo | menos de {META_RIESGO:.0%} |
 """)
 
+    with st.expander("Contrato de datos · revisión de tipos y origen de las cifras"):
+        comprobacion = resumen_validacion(df_general)
+        correctas = int((comprobacion["Resultado"] == "Correcto").sum())
+        if correctas == len(comprobacion):
+            st.success(f"Verificación automática: {correctas}/{len(comprobacion)} columnas correctas")
+        else:
+            st.error(f"Hay errores de tipo o valores ausentes: {correctas}/{len(comprobacion)} correctas")
+        st.dataframe(comprobacion, column_order=list(comprobacion.columns),
+                     hide_index=True, use_container_width=True, height=280)
+        st.caption("El CSV se valida antes de generar las pantallas; un dato que no cumple impide mostrar cifras incorrectas")
+
+    # [M4C-P2 DEMO ERRORES]
+    with st.expander("Demostración de errores · ejemplos seguros", expanded=False):
+        st.info("MODO DEMOSTRACIÓN: se modifica una copia de 3 filas en memoria. Los datos reales y los KPI no cambian.")
+        caso_demo = st.selectbox(
+            "Selecciona un error de ejemplo",
+            list(CASOS_DEMO),
+            format_func=lambda k: CASOS_DEMO[k],
+            key="m4c_parte2_caso_demo",
+        )
+        ejemplo = crear_demostracion(df_general, caso_demo)
+        st.dataframe(ejemplo["detalle"], hide_index=True,
+                     column_order=list(ejemplo["detalle"].columns),
+                     use_container_width=True)
+        if ejemplo["bloqueado"]:
+            st.error("DEMO · Carga rechazada por el contrato de datos")
+            st.code(ejemplo["mensaje"], language=None)
+        else:
+            st.warning("DEMO · El validador no rechazó el caso; revisar las reglas")
+        st.caption("El mensaje proviene del validador real. Con ese fallo en el CSV original, "
+                   "la aplicación detendría la carga antes de mostrar los datos.")
+
 # ------------------------------------------------------------------ Datos
 with datos:
     a, b = st.columns([1, 2])
@@ -82,15 +120,15 @@ with datos:
     buscar = b.text_input("Buscar por ID, país o ciudad", key="l_buscar", placeholder="Ej. C00012, UK, Toronto")
     lista = tabla_clientes(df, regla, solo_riesgo, buscar)
     st.caption(f"{len(lista):,} clientes en la lista")
-    st.dataframe(lista, hide_index=True, height=420, use_container_width=True,
-                 column_config={"LTV (escala CSV)": st.column_config.NumberColumn(format="%.3f"),
-                                "Carrito abandonado (%)": st.column_config.NumberColumn(format="%.1f")})
+    st.dataframe(lista, column_order=list(lista.columns), hide_index=True,
+                 height=420, use_container_width=True,
+                 column_config=configuracion_columnas(lista))
     st.download_button("Descargar lista (CSV)", lista.to_csv(index=False).encode("utf-8"),
                        file_name="lista_campana_retencion.csv", mime="text/csv", disabled=lista.empty)
-    st.caption("Los días sin comprar se reconstruyen con exp(x) − 1 porque el CSV los guarda en logaritmo.")
+    st.caption("Origen por columna: abre la ayuda del encabezado, las cifras originales vienen del CSV y los días sin comprar son calculados con exp(x) − 1, el LTV está en escala logarítmica y no tiene moneda documentada")
 
 # ------------------------------------------------------------------ Definiciones
 with definiciones:
     st.caption("Nombre de campo, interpretación y unidad disponible. Las unidades no documentadas se indican "
                "como tales; no se les asigna una moneda.")
-    st.dataframe(DEFINICIONES, hide_index=True, height=520, use_container_width=True)
+    st.dataframe(DEFINICIONES, column_order=list(DEFINICIONES.columns), hide_index=True, height=520, use_container_width=True)

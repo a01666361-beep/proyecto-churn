@@ -9,6 +9,8 @@ QUÉ FALTA (TODO):
 import numpy as np
 import pandas as pd
 
+from src.contrato_datos import validar_origen, validar_procesado
+
 COLUMNAS_TEXTO = ["Customer_ID", "Gender", "Country", "City", "Signup_Quarter"]
 
 
@@ -48,8 +50,10 @@ def agregar_variables(df):
 
 def cargar_datos(ruta):
     """Lee el CSV y aplica toda la limpieza. Devuelve el DataFrame listo."""
-    df = pd.read_csv(ruta, dtype=str)
+    df = pd.read_csv(ruta, dtype=str, keep_default_na=False)
+    validar_origen(df)  # antes de convertir o construir la interfaz
     df = convertir_numeros(df)
     df = limpiar_texto(df)
     df = agregar_variables(df)
+    validar_procesado(df)
     return df

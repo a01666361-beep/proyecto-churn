@@ -151,3 +151,34 @@ Arlen Carolina Martínez González · José Gerardo Córdova Molina ·
 Erick Eduardo Silva García · Irais Fernanda Granados Mendoza ·
 Adán Ávila Esparza · Víctor Alejandro García Hernández ·
 Sara Elizabeth Rivero Hernández
+
+## Entregable 2 · Contrato de datos y validación automática
+
+El significado de las columnas, las unidades y el manejo de valores faltantes están en [contrato-datos.md](contrato-datos.md). La app carga el CSV, revisa que cumpla el contrato antes de dibujar información, y muestra un resumen de la verificación en el panel de filtros y en la pestaña **Luis > Monitoreo > Contrato de datos**. Las tablas principales incluyen ayuda en sus encabezados sobre el origen de las cifras.
+
+### Ejecutar las pruebas
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+El workflow de GitHub Actions es [validacion-datos.yml](.github/workflows/validacion-datos.yml) y se ejecuta en *push* y *pull request* contra `main`.
+
+### Evidencia obligatoria: corrida fallida por dato roto
+
+**ESTADO: PENDIENTE DE EJECUTAR EN GITHUB.** No colocar una liga hasta que exista una corrida real.
+
+1. Crear una rama temporal a partir de `main`, por ejemplo `demostracion-error-datos`, sin modificar la rama publicada.
+2. En esa rama, modificar intencionalmente **una celda numérica** del CSV, por ejemplo poner `ERROR` en `Credit_Balance` de un registro, y subir el cambio a la rama temporal.
+3. Abrir un *pull request* a `main`; GitHub Actions debe ejecutar `contrato-y-regresion` y fallar indicando que `Credit_Balance` no es numérica.
+4. Copiar aquí el enlace **real** a la ejecución fallida: `PENDIENTE: pegar URL de Actions`.
+5. Restaurar el CSV correcto antes de integrar cambios, correr las pruebas hasta que pasen y cerrar el PR de demostración si ya no se necesita.
+6. Para que realmente se impida fusionar un cambio incorrecto, un administrador debe configurar una protección o *ruleset* de `main` y exigir el *status check* `contrato-y-regresion` (una corrida fallida sin esa protección no impide necesariamente fusionar).
+
+> **Nota:** una prueba sintética en `tests/test_contrato_datos.py` también reproduce el problema, pero no sustituye el enlace a una ejecución fallida exigido por la rúbrica.
+
+### Observación de calidad con el CSV actual
+
+Al revisar los 50,000 registros, se identificaron **168 valores fraccionarios `5,6818`** en `Customer_Service_Calls`. El dato es numérico y no viola la regla actual del contrato, pero representa una anomalía semántica porque la variable se describe como conteo de llamadas. La pantalla **Luis > Monitoreo** muestra la observación. Hasta verificar el origen no se asume que sean faltantes ni se redondean.
+
+La implementación local superó 11 pruebas del contrato con la base actual. Esto **no equivale** a una ejecución de GitHub Actions ni sustituye la captura de una corrida fallida real.

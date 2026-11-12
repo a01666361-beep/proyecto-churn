@@ -14,6 +14,7 @@ from src.config import RUTA_DATOS
 from src.filtros import mostrar_filtros
 from src.indicadores import tasa_churn
 from src.limpieza import cargar_datos
+from src.contrato_datos import ErrorContrato, resumen_validacion
 
 
 @st.cache_data
@@ -23,7 +24,12 @@ def obtener_datos():
 
 def preparar():
     """Dibuja los filtros y guarda la selección para la pantalla activa."""
-    df = obtener_datos()
+    try:
+        df = obtener_datos()
+    except (ErrorContrato, ValueError) as exc:
+        st.error("Datos rechazados por el contrato: " + str(exc))
+        st.stop()
+    st.caption(f"Contrato de datos: {len(resumen_validacion(df))} columnas verificadas · correcto")
     df_filtrado, regla = mostrar_filtros(df)
     st.session_state["_contexto"] = SimpleNamespace(
         df=df, df_filtrado=df_filtrado, regla=regla, tasa_global=tasa_churn(df))

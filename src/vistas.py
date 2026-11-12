@@ -79,7 +79,7 @@ COLUMNAS_LISTA = {
     "Customer_ID": "ID", "Country": "País", "City": "Ciudad", "Age": "Edad",
     "Cart_Abandonment_Rate": "Carrito abandonado (%)", "Customer_Service_Calls": "Llamadas",
     "Dias_Sin_Comprar": "Días sin comprar", "Login_Frequency": "Inicios de sesión",
-    "Lifetime_Value": "LTV (escala CSV)",
+    "Lifetime_Value": "LTV (escala CSV)", "Credit_Balance": "Saldo de crédito",
 }
 
 

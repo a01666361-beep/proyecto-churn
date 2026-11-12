@@ -10,6 +10,7 @@ import streamlit as st
 from src import modelo as M
 from src.config import AZUL, ROJO, VERDE
 from src.contexto import contexto, obtener_datos
+from src.tablas_datos import configuracion_columnas
 
 
 @st.cache_resource(show_spinner="Entrenando el modelo…")
@@ -61,11 +62,15 @@ with scoring:
     tabla = M.tabla_scoring(puntuado, solo_activos=solo_activos, niveles=niveles)
     st.markdown(f"**{len(tabla):,} clientes**, ordenados de mayor a menor probabilidad de abandono.")
     st.dataframe(
-        tabla, hide_index=True, use_container_width=True, height=420,
-        column_config={"Probabilidad de churn (%)": st.column_config.ProgressColumn(
-            min_value=0, max_value=100, format="%.1f%%")})
+        tabla, column_order=list(tabla.columns), hide_index=True,
+        use_container_width=True, height=420,
+        column_config={**configuracion_columnas(tabla),
+                       "Probabilidad de churn (%)": st.column_config.ProgressColumn(
+                           min_value=0, max_value=100, format="%.1f%%",
+                           help="Origen: resultado estimado por el modelo, no es dato observado")})
     st.download_button("Descargar tabla (CSV)", tabla.to_csv(index=False).encode("utf-8-sig"),
                        file_name="clientes_priorizados.csv", mime="text/csv", disabled=tabla.empty)
+    st.caption("Abre la ayuda de cada encabezado para ver si la cifra viene del CSV, de un cálculo o del modelo")
     st.caption("El scoring usa toda la base, incluidos los clientes con los que se entrenó el modelo. "
                "Sirve para ordenar la lista de contacto, no para medir qué tan bueno es el modelo (eso está en "
                "la pestaña Modelo y variables).")
