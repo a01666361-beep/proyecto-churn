@@ -182,3 +182,15 @@ El workflow de GitHub Actions es [validacion-datos.yml](.github/workflows/valida
 Al revisar los 50,000 registros, se identificaron **168 valores fraccionarios `5,6818`** en `Customer_Service_Calls`. El dato es numérico y no viola la regla actual del contrato, pero representa una anomalía semántica porque la variable se describe como conteo de llamadas. La pantalla **Luis > Monitoreo** muestra la observación. Hasta verificar el origen no se asume que sean faltantes ni se redondean.
 
 La implementación local superó 11 pruebas del contrato con la base actual. Esto **no equivale** a una ejecución de GitHub Actions ni sustituye la captura de una corrida fallida real.
+
+## Evidencia: el pipeline detecta datos incorrectos
+
+Prueba realizada el 12 de noviembre de 2026.
+
+- Error introducido: ERROR_DEMO en la columna Age.
+- Resultado: GitHub Actions detectó el dato no numérico.
+- Estado: FAILED (errors=3).
+- Los datos correctos permanecen en la rama del entregable.
+
+[Ejecución fallida de GitHub Actions](https://github.com/a01666361-beep/proyecto-churn/actions/runs/43277557193)
+
