@@ -39,7 +39,7 @@ El menú de arriba cambia de pantalla. Los filtros de la derecha (país, género
 | **01 · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | ¿Dónde se concentra el abandono y a qué segmentos dirigir la campaña? | 2 KPI (abandono y riesgo), churn contra meta editable (25%), dona, mapa de calor carrito × llamadas, churn por edad / país / ciudad / antigüedad con exportación CSV |
 | **02 · Alertas y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | ¿Hay alertas, los datos son confiables y quién entra a la lista? | Pestañas Monitoreo (alertas +2 pts y meta de 5%, calidad de datos), Datos (lista de activos en riesgo con búsqueda y descarga) y Definiciones |
 | **03 · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | ¿Se van los clientes valiosos y dónde invertir? | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
-| **05 · Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | ¿A qué clientes contactar primero y qué explica su riesgo? | Pestañas Scoring (toda la base ordenada por probabilidad, niveles Alto/Medio/Bajo, descarga CSV), Segmentos (4 clusters con perfil y nombre) y Modelo y variables (métricas, matriz de confusión y coeficientes) |
+| **05 · Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | ¿A qué clientes contactar primero y qué explica su riesgo? | Pestañas Scoring (toda la base ordenada por probabilidad, niveles Alto/Medio/Bajo, descarga CSV), Segmentos (3 clusters con perfil y nombre) y Modelo y variables (métricas, matriz de confusión y coeficientes) |
 | **04 · Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | ¿Qué hacer primero y cómo medir si funcionó? | Tabla de prioridades y, por acción: qué hacer, por qué (dato), activos a quienes aplica, cómo medirlo y siguientes pasos |
 
 - **Limpiar filtros** restaura la selección y la regla oficial.
@@ -113,7 +113,7 @@ proyecto-churn/
 | Balanceo | `class_weight="balanced"`: sin balancear, el recall era de 39%; con balanceo sube a 70% |
 | Métricas (prueba) | AUC 0.771 · Recall 70.4% · Precisión 48.6% · F1 0.575 · Accuracy 69.9% (línea base 71.1%) |
 | Niveles de riesgo | Alto ≥ 70% · Medio 40% a 70% · Bajo < 40%. Churn histórico por nivel: 65.5%, 32.2% y 11.6% |
-| Segmentos | K-Means con 4 grupos sobre 12 variables de comportamiento: Comprometidos (18.2% churn), Regulares (18.4%), En enfriamiento (30.0%) y Desconectados (48.3%) |
+| Segmentos | K-Means con 3 grupos (método del codo) sobre 12 variables de comportamiento: Comprometidos (18.3% churn), Regulares (22.3%) y Desconectados (44.4%). Validación estadística en `notebooks/Equipo5_KMeans_Clustering.ipynb` |
 
 ## Reglas del equipo
 
