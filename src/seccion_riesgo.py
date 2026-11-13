@@ -69,5 +69,5 @@ def mostrar(df, regla):
         return
     st.plotly_chart(figura_riesgo(df, regla), config={"displayModeBar": False})
     st.caption("Mapa: verde = menor tasa de abandono, rojo = mayor tasa (escala 0–100%, no es meta). "
-               f"País: verde ▼ cumple menos de {META_RIESGO:.0%}; rojo ▲ no cumple. Las celdas con pocos clientes requieren cautela; "
+               f"País: verde ▼ cumple menos de {META_RIESGO:.1%}; rojo ▲ no cumple. Las celdas con pocos clientes requieren cautela; "
                "consulta su cantidad al pasar el cursor. Las asociaciones no demuestran causalidad.")

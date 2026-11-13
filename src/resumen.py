@@ -99,7 +99,7 @@ def recomendaciones(df, df_general, regla):
                     f"En este perfil abandonó el {p['tasa_dentro']:.1%} de los clientes, contra "
                     f"{p['tasa_fuera']:.1%} del resto."),
         "a_quien": p["activos"],
-        "medir": f"% de activos en perfil de riesgo: bajar de la situación actual a menos de {META_RIESGO:.0%}.",
+        "medir": f"% de activos en perfil de riesgo: bajar de la situación actual a menos de {META_RIESGO:.1%}.",
         "pantalla": "02 · Alertas y calidad",
     })
 

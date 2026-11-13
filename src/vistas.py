@@ -65,7 +65,7 @@ def alertas(tasa_seleccion, tasa_global, riesgo, calidad):
         {"titulo": f"Churn supera la línea base +{ALERTA_PP * 100:.0f} pts",
          "encendida": bool(tasa_seleccion > umbral),
          "motivo": f"{tasa_seleccion:.1%} frente al umbral de {umbral:.1%}"},
-        {"titulo": f"Activos en perfil de riesgo en {META_RIESGO:.0%} o más",
+        {"titulo": f"Activos en perfil de riesgo en {META_RIESGO:.1%} o más",
          "encendida": bool(riesgo["total_activos"] > 0 and riesgo["pct_activos"] >= META_RIESGO),
          "motivo": f"{riesgo['pct_activos']:.1%} de los activos ({riesgo['activos_en_perfil']:,} clientes)"},
         {"titulo": "Calidad de los datos",

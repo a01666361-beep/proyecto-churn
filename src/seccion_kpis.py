@@ -63,7 +63,7 @@ def tarjeta_riesgo(df, regla, df_general):
     color = ROJO if sobre_meta else VERDE
     estado = "rojo" if sobre_meta else "verde"
     chip_clase = "chip-rojo" if sobre_meta else "chip-verde"
-    chip_texto = ("▲ Fuera de meta" if sobre_meta else "▼ Dentro de meta") + f" · menos de {META_RIESGO:.0%}"
+    chip_texto = ("▲ Fuera de meta" if sobre_meta else "▼ Dentro de meta") + f" · menos de {META_RIESGO:.1%}"
     if not r["total_activos"]:
         color, estado, chip_clase = AZUL, "azul", "chip-gris"
         chip_texto = "Sin activos para evaluar la meta"
@@ -84,7 +84,7 @@ def tarjeta_riesgo(df, regla, df_general):
       <div class="kpi-info">
         <div><b>Qué mide:</b> el % de activos que se parecen a los clientes que sí se fueron.</div>
         <div><b>Cálculo:</b> activos con carrito &gt; {regla['carrito_min']:.2f}% y {regla['llamadas_min']}+ llamadas ÷ total de activos.</div>
-        <div><b>Meta:</b> menos de {META_RIESGO:.0%}. Son los clientes a contactar primero.</div>
+        <div><b>Meta:</b> menos de {META_RIESGO:.1%}. Son los clientes a contactar primero.</div>
         <div><b>Churn histórico del perfil:</b> {r['tasa_historica']:.1%}.</div>
         <div><b>Referencia general:</b> toda la base con la misma regla de riesgo. Las flechas comparan segmentos, no cambios en el tiempo.</div>
       </div>

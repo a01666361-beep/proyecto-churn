@@ -35,7 +35,7 @@ with monitoreo:
     m1.metric("Churn de la selección", f"{tasa:.1%}" if len(df) else "—",
               f"{(tasa - tasa_global) * 100:+.1f} pts vs. línea base", delta_color="inverse")
     m2.metric("Activos en perfil de riesgo", f"{riesgo['pct_activos']:.1%}" if riesgo["total_activos"] else "—",
-              f"{(riesgo['pct_activos'] - META_RIESGO) * 100:+.1f} pts vs. meta ({META_RIESGO:.0%})",
+              f"{(riesgo['pct_activos'] - META_RIESGO) * 100:+.1f} pts vs. meta ({META_RIESGO:.1%})",
               delta_color="inverse")
     m3.metric("Valores nulos", f"{calidad['nulos']:,}", help=f"Base completa · {calidad['variables']} columnas")
     m4.metric("Fecha de última carga", "No informada", help="El CSV no incluye metadatos de carga.")
@@ -78,7 +78,7 @@ with monitoreo:
 |---|---|
 | Churn global (línea base) | {tasa_global:.2%} |
 | Umbral de alerta (+{ALERTA_PP * 100:.0f} pts) | {tasa_global + ALERTA_PP:.2%} |
-| Meta de activos en riesgo | menos de {META_RIESGO:.0%} |
+| Meta de activos en riesgo | menos de {META_RIESGO:.1%} |
 """)
 
     with st.expander("Contrato de datos · revisión de tipos y origen de las cifras"):

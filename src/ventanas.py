@@ -81,7 +81,7 @@ def ventana_definiciones(tasa_global):
 | KPI | Cálculo | Referencia |
 |---|---|---|
 | **Tasa de abandono** | Clientes con `Churned = 1` / total de clientes de la selección | Global: {tasa_global:.1%} |
-| **Activos en perfil de riesgo** | Activos que cumplen la regla / total de activos de la selección | Meta: menos de {META_RIESGO:.0%} |
+| **Activos en perfil de riesgo** | Activos que cumplen la regla / total de activos de la selección | Meta: menos de {META_RIESGO:.1%} |
 | **Churn del perfil** | Churn de todos los clientes (activos y no) que cumplen la regla | Se compara con la tasa global |
 
 **Regla de riesgo:** carrito abandonado mayor al umbral **y** llamadas a servicio mayores o iguales al umbral

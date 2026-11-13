@@ -12,7 +12,7 @@ Dashboard en Streamlit con un **resumen general**, **tres pantallas (una por use
 | **Decisión que habilita** | A qué clientes activos dirigir la campaña de retención, y en qué país empezar |
 | **Indicador** | % de clientes activos en perfil de riesgo (carrito abandonado > 71.25% **y** 6 o más llamadas a servicio), entre el total de activos |
 | **Línea base** | 6.75%: 2,401 de 35,550 activos (dataset completo, sin filtros) |
-| **Meta** | Bajar a menos de 5% de los activos en perfil de riesgo |
+| **Meta** | Bajar a menos de 4.5% de los activos en perfil de riesgo |
 | **Referencia (no meta)** | Tasa general de abandono: 28.9% (14,450 de 50,000 clientes) |
 
 ## Observaciones de la exposición del 21 de octubre
@@ -37,7 +37,7 @@ El menú de arriba cambia de pantalla. Los filtros de la derecha (país, género
 |---|---|---|---|
 | **00 · Resumen general** (`paginas/resumen.py`) | Todo el equipo | ¿Cuál es la situación del abandono y qué está relacionado con él? | Situación actual contra metas, 6 hallazgos (llamadas, carrito, días sin comprar, perfil de riesgo, segmento y valor) y guía de uso de las pantallas |
 | **01 · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | ¿Dónde se concentra el abandono y a qué segmentos dirigir la campaña? | 2 KPI (abandono y riesgo), churn contra meta editable (25%), dona, mapa de calor carrito × llamadas, churn por edad / país / ciudad / antigüedad con exportación CSV |
-| **02 · Alertas y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | ¿Hay alertas, los datos son confiables y quién entra a la lista? | Pestañas Monitoreo (alertas +2 pts y meta de 5%, calidad de datos), Datos (lista de activos en riesgo con búsqueda y descarga) y Definiciones |
+| **02 · Alertas y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | ¿Hay alertas, los datos son confiables y quién entra a la lista? | Pestañas Monitoreo (alertas +2 pts y meta de 4.5%, calidad de datos), Datos (lista de activos en riesgo con búsqueda y descarga) y Definiciones |
 | **03 · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | ¿Se van los clientes valiosos y dónde invertir? | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
 | **05 · Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | ¿A qué clientes contactar primero y qué explica su riesgo? | Pestañas Scoring (toda la base ordenada por probabilidad, niveles Alto/Medio/Bajo, descarga CSV), Segmentos (3 clusters con perfil y nombre) y Modelo y variables (métricas, matriz de confusión y coeficientes) |
 | **04 · Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | ¿Qué hacer primero y cómo medir si funcionó? | Tabla de prioridades y, por acción: qué hacer, por qué (dato), activos a quienes aplica, cómo medirlo y siguientes pasos |
@@ -102,7 +102,7 @@ proyecto-churn/
 | KPI | Qué mide | Variables relacionadas en pantalla |
 |---|---|---|
 | **1 · Tasa de abandono** | % de clientes con `Churned = 1` (global: 28.9%) | Churn por llamadas a servicio, carrito abandonado y días sin comprar |
-| **2 · Activos en perfil de riesgo** | Activos con carrito abandonado > 71.25% **y** 6+ llamadas, entre el total de activos. Meta: < 5% | Mapa de calor carrito × llamadas y % en riesgo por país |
+| **2 · Activos en perfil de riesgo** | Activos con carrito abandonado > 71.25% **y** 6+ llamadas, entre el total de activos. Meta: < 4.5% | Mapa de calor carrito × llamadas y % en riesgo por país |
 
 ## Modelo predictivo
 
