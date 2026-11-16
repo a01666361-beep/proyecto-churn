@@ -80,5 +80,6 @@ with st.container(border=True):
 | **03 · Valor y presupuesto** | Carlos Mendoza, estrategia y valor | Si se están yendo los clientes valiosos y dónde conviene invertir |
 | **04 · Recomendaciones** | Todo el equipo | Qué acciones tomar primero y cómo medir si funcionaron |
 | **05 · Clientes prioritarios** | Andrea y Luis | A qué clientes contactar primero según su probabilidad de abandono y su segmento |
+| **06 · Segmentos** | Andrea y Carlos | Qué tipo de cliente se va más y a quién de cada segmento contactar primero |
 """)
     st.caption("Los filtros de la derecha aplican a todas las pantallas y se conservan al cambiar de una a otra.")

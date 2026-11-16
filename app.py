@@ -6,6 +6,7 @@
 03 Carlos Mendoza · estrategia y valor     → paginas/carlos.py
 04 Recomendaciones finales                 → paginas/recomendaciones.py
 05 Clientes prioritarios (modelo)          → paginas/clientes.py
+06 Segmentos de clientes (K-Means)         → paginas/segmentos.py
 
 Los filtros (país, género, edad y criterios de riesgo) están a la derecha y son
 los mismos para todas las pantallas.
@@ -33,6 +34,7 @@ pantalla = st.navigation([
     st.Page("paginas/carlos.py", title="03 · Carlos · Valor y presupuesto", icon=":material/payments:"),
     st.Page("paginas/recomendaciones.py", title="04 · Recomendaciones", icon=":material/task_alt:"),
     st.Page("paginas/clientes.py", title="05 · Clientes prioritarios", icon=":material/person_search:"),
+    st.Page("paginas/segmentos.py", title="06 · Segmentos", icon=":material/groups:"),
 ], position="top")
 
 estilos.encabezado("Abandono de clientes")

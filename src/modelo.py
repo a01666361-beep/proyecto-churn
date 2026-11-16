@@ -123,6 +123,53 @@ def coeficientes(modelo):
         ["Variable", "Coeficiente", "Razón de momios", "Efecto"]]
 
 
+def explicar_cliente(modelo, df, cliente_id, n=5):
+    """Explica la probabilidad de un cliente: cuánto aporta cada variable frente al cliente promedio.
+
+    Agregado por Víctor García (A01784206). En una regresión logística el logit es la suma de
+    coeficiente × valor estandarizado, así que el aporte de cada variable es exacto (no aproximado):
+    aporte = coeficiente × (valor del cliente − valor promedio de la base), en la escala del logit.
+    Las columnas one-hot de una misma variable (por ejemplo, Country) se suman en un solo renglón.
+    La suma de todos los aportes más el logit del cliente promedio da el logit del cliente.
+
+    Regresa (tabla, base): tabla con las n variables de mayor aporte absoluto y un dict con la
+    probabilidad del cliente y la del cliente promedio.
+    """
+    prep = modelo.named_steps["preparacion"]
+    reg = modelo.named_steps["regresion"]
+    Z_base = prep.transform(_x(df))
+    Z_base = Z_base.toarray() if hasattr(Z_base, "toarray") else np.asarray(Z_base)
+    promedio = Z_base.mean(axis=0)
+
+    fila = df[df["Customer_ID"] == cliente_id]
+    if fila.empty:
+        raise KeyError(f"No existe el cliente {cliente_id}")
+    z = prep.transform(_x(fila.head(1)))
+    z = (z.toarray() if hasattr(z, "toarray") else np.asarray(z))[0]
+
+    coef = reg.coef_[0]
+    aportes = coef * (z - promedio)
+    nombres = prep.get_feature_names_out()
+    variable = [n.split("__", 1)[1] if n.startswith("numericas__")
+                else next(c for c in VARIABLES_CATEGORICAS if n.split("__", 1)[1].startswith(c + "_"))
+                for n in nombres]
+    tabla = (pd.DataFrame({"variable_modelo": variable, "Aporte": aportes})
+             .groupby("variable_modelo", as_index=False)["Aporte"].sum())
+    valores = fila.iloc[0]
+    tabla["Variable"] = tabla["variable_modelo"].map(lambda v: NOMBRES.get(v, v))
+    tabla["Valor del cliente"] = tabla["variable_modelo"].map(lambda v: valores[v])
+    tabla["Efecto"] = np.where(tabla["Aporte"] > 0, "Sube el riesgo", "Baja el riesgo")
+
+    logit_promedio = reg.intercept_[0] + coef @ promedio
+    logit_cliente = logit_promedio + aportes.sum()
+    base = {"probabilidad": 1 / (1 + np.exp(-logit_cliente)),
+            "probabilidad_promedio": 1 / (1 + np.exp(-logit_promedio)),
+            "logit": logit_cliente, "logit_promedio": logit_promedio,
+            "suma_aportes": aportes.sum()}
+    tabla = tabla.reindex(tabla["Aporte"].abs().sort_values(ascending=False).index).head(n)
+    return tabla[["Variable", "Valor del cliente", "Aporte", "Efecto"]].reset_index(drop=True), base
+
+
 def nivel_riesgo(prob):
     return np.select([prob >= UMBRAL_ALTO, prob >= UMBRAL_MEDIO], ["Alto", "Medio"], "Bajo")
 

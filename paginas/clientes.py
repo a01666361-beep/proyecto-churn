@@ -3,12 +3,13 @@ Pantalla 05 · Clientes prioritarios (modelo predictivo).
 Pregunta: ¿qué clientes activos tienen más probabilidad de abandonar, a qué segmento pertenecen
 y qué variables explican el riesgo?
 RESPONSABLE: Sara Rivero
+Explicación por cliente («¿por qué está en riesgo?»): Víctor García (A01784206)
 """
 import plotly.graph_objects as go
 import streamlit as st
 
 from src import modelo as M
-from src.config import AZUL, AZUL_PALIDO, ROJO, VERDE
+from src.config import AZUL, AZUL_PALIDO, GRIS, ROJO, VERDE
 from src.contexto import contexto, obtener_datos
 from src.tablas_datos import configuracion_columnas
 
@@ -74,6 +75,48 @@ with scoring:
     st.caption("El scoring usa toda la base, incluidos los clientes con los que se entrenó el modelo. "
                "Sirve para ordenar la lista de contacto, no para medir qué tan bueno es el modelo (eso está en "
                "la pestaña Modelo y variables).")
+
+    # -------------------------------------------- ¿Por qué está en riesgo? (Víctor García, A01784206)
+    st.markdown("#### ¿Por qué este cliente aparece con este riesgo?")
+    if tabla.empty:
+        st.info("No hay clientes en la tabla con estos filtros.")
+    else:
+        opciones = tabla["Cliente"].tolist()
+        elegido = st.selectbox(
+            "Cliente", opciones, index=0, key="explicar_cliente",
+            format_func=lambda cid: (f"{cid} · {tabla.loc[tabla['Cliente'] == cid, 'Probabilidad de churn (%)'].iloc[0]:.1f}% · "
+                                     f"{tabla.loc[tabla['Cliente'] == cid, 'Nivel de riesgo'].iloc[0]}"),
+            help="Clientes de la tabla de arriba, en el mismo orden (de mayor a menor probabilidad).")
+        explicacion, base = M.explicar_cliente(resultado["modelo"], puntuado_total, elegido, n=5)
+        fila = puntuado_total[puntuado_total["Customer_ID"] == elegido].iloc[0]
+
+        izquierda, derecha = st.columns([1, 2], gap="large")
+        with izquierda:
+            with st.container(border=True):
+                st.markdown(f"**Cliente {elegido}**")
+                st.markdown(f'<div class="kpi-valor">{base["probabilidad"]:.1%}</div>', unsafe_allow_html=True)
+                st.caption(f"Probabilidad de abandono según el modelo · nivel **{fila['Nivel_Riesgo']}** · "
+                           f"segmento **{fila['Segmento']}**")
+                st.caption(f"Cliente promedio de la base: {base['probabilidad_promedio']:.1%}")
+            lectura = explicacion.iloc[0]
+            st.markdown(f"Lo que más mueve su riesgo es **{lectura['Variable'].lower()}**, que "
+                        f"{'lo sube' if lectura['Aporte'] > 0 else 'lo baja'} frente al cliente promedio.")
+        with derecha:
+            orden = explicacion.iloc[::-1]
+            fig = go.Figure(go.Bar(
+                x=orden["Aporte"], y=orden["Variable"], orientation="h",
+                marker_color=[ROJO if v > 0 else VERDE for v in orden["Aporte"]],
+                customdata=orden["Valor del cliente"].astype(str),
+                hovertemplate="%{y}<br>Valor del cliente: %{customdata}<br>Aporte: %{x:+.2f}<extra></extra>"))
+            fig.add_vline(x=0, line_color=GRIS)
+            fig.update_layout(height=280, margin=dict(l=10, r=20, t=30, b=10),
+                              title=dict(text="Las 5 variables que más pesan en su probabilidad", font_size=14),
+                              xaxis_title="Aporte al riesgo frente al cliente promedio (escala logit)")
+            st.plotly_chart(fig, width="stretch")
+        st.caption("Naranja: sube su riesgo · cian: lo baja. El aporte es exacto para la regresión logística: "
+                   "coeficiente × (valor del cliente − valor promedio). Origen: resultado del modelo, no es dato observado. "
+                   "Explica por qué el modelo le dio esa probabilidad; no prueba que esa sea la causa real de que se vaya. "
+                   "Algunas variables vienen en escala log del CSV (ver contrato de datos).")
 
 # ================================================================== Segmentos
 with segmentos:
