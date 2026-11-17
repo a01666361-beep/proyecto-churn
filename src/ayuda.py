@@ -57,6 +57,14 @@ GUIAS = {
         "indicadores": "Riesgo Alto ≥ 70% de probabilidad, Medio de 40% a 70%, Bajo menos de 40%. Las métricas del "
                        "modelo usan toda la base y no cambian con los filtros.",
     },
+    "segmentos": {
+        "para": "Saber qué tipo de cliente se va más y a quién de cada segmento contactar primero.",
+        "pasos": ["Compara el churn de los 3 segmentos en las tarjetas y en la gráfica de abandono.",
+                  "Revisa qué parte de los activos de cada segmento está en riesgo alto, medio o bajo.",
+                  "Elige un segmento y un nivel de riesgo para obtener su lista de contacto (oculta, con descarga)."],
+        "indicadores": "Churn histórico: calculado del CSV. Segmento y nivel de riesgo: resultado del modelo, no son "
+                       "datos observados.",
+    },
     "recomendaciones": {
         "para": "Decidir qué acciones tomar primero y cómo medir si funcionaron.",
         "pasos": ["La tabla de prioridades ordena las acciones; la 1 es por donde conviene empezar.",
