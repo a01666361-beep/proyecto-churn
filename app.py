@@ -5,6 +5,7 @@ Análisis por usuario  → Andrea López · gerente de retención (paginas/andre
                         Luis Ramírez · operaciones y CRM    (paginas/luis.py)
                         Carlos Mendoza · estrategia y valor (paginas/carlos.py)
 Modelo predictivo     → Clientes prioritarios               (paginas/clientes.py)
+                        Segmentos de clientes (K-Means)     (paginas/segmentos.py)
 Plan de acción        → Recomendaciones                     (paginas/recomendaciones.py)
 
 Los filtros (país, género, edad y criterios de riesgo) están a la derecha y son
@@ -37,6 +38,7 @@ pantalla = st.navigation({
     ],
     "Modelo predictivo": [
         st.Page("paginas/clientes.py", title="Clientes prioritarios", icon=":material/person_search:"),
+        st.Page("paginas/segmentos.py", title="Segmentos", icon=":material/groups:"),
     ],
     "Plan de acción": [
         st.Page("paginas/recomendaciones.py", title="Recomendaciones", icon=":material/task_alt:"),
