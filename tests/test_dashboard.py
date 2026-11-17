@@ -67,10 +67,10 @@ class DashboardRegression(unittest.TestCase):
     def test_tres_pantallas_abren(self):
         a = self.app()
         self.assertIn("Situación actual", self.contenido(a))  # abre en el resumen general
-        for pagina, texto in [("paginas/andrea.py", "Tasa de abandono"), ("paginas/luis.py", "No informada"),
+        for pagina, texto in [("paginas/andrea.py", "Tasa de abandono"), ("paginas/luis.py", "Alertas del modelo"),
                               ("paginas/carlos.py", "No calculable"),
                               ("paginas/recomendaciones.py", "Cómo medirlo"),
-                              ("paginas/clientes.py", "Niveles de riesgo")]:
+                              ("paginas/clientes.py", "Riesgo alto:")]:
             with self.subTest(pagina=pagina):
                 a.switch_page(pagina).run(timeout=90)
                 self.assertFalse(a.exception, [e.message for e in a.exception])
@@ -110,6 +110,36 @@ class DashboardRegression(unittest.TestCase):
         self.assertTrue(tabla["Probabilidad de churn (%)"].is_monotonic_decreasing)
         perfil = modelo.perfil_segmentos(puntuado)
         self.assertEqual(list(perfil["Segmento"]), modelo.NOMBRES_SEGMENTO)
+
+    def test_alertas_del_modelo_son_dinamicas(self):
+        r = modelo.entrenar_modelo(self.df)
+        total = modelo.puntuar(self.df, r["modelo"])
+        # Con toda la base, la selección es igual al negocio: alertas apagadas
+        self.assertEqual([a["encendida"] for a in vistas.alertas_modelo(total, total)], [False, False])
+        # El segmento de 18 a 29 años tiene más riesgo que el negocio: alertas encendidas
+        jovenes = total[self.df["Grupo_Edad"] == "18–29"]
+        self.assertEqual([a["encendida"] for a in vistas.alertas_modelo(jovenes, total)], [True, True])
+        # Datos modificados (1 llamada más por cliente) encienden las alertas; la base original no cambia
+        antes = self.df["Customer_Service_Calls"].copy()
+        simulado = modelo.puntuar(vistas.simular_datos(self.df, llamadas_extra=1), r["modelo"])
+        self.assertTrue(all(a["encendida"] for a in vistas.alertas_modelo(simulado, total)))
+        self.assertTrue(self.df["Customer_Service_Calls"].equals(antes))
+        self.assertLessEqual(vistas.simular_datos(self.df, carrito_extra=30)["Cart_Abandonment_Rate"].max(), 100)
+
+    def test_retroalimentacion_12_noviembre(self):
+        a = self.app()
+        for pagina in ["paginas/resumen.py", "paginas/andrea.py", "paginas/luis.py", "paginas/carlos.py",
+                       "paginas/clientes.py", "paginas/recomendaciones.py"]:
+            with self.subTest(pagina=pagina):
+                a.switch_page(pagina).run(timeout=120)
+                self.assertFalse(a.exception, [e.message for e in a.exception])
+                # Botón "?" de ayuda en todas las pantallas
+                self.assertIn("Cómo usar", self.contenido(a))
+                # Sin preguntas como títulos de sección
+                titulos = [m.value for m in a.markdown if m.value.lstrip().startswith("#")]
+                self.assertFalse([t for t in titulos if "¿" in t], titulos)
+        a.switch_page("paginas/luis.py").run(timeout=120)
+        self.assertNotIn("Datos", [t.label for t in a.tabs])  # el dataset ya no es una pestaña
 
     def test_kpi_sin_tarjeta_de_clientes(self):
         a = self.app()
