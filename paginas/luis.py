@@ -1,14 +1,17 @@
 """
 Pantalla 02 · Luis Ramírez, coordinador de operaciones de datos y CRM.
-Pregunta: ¿hay alguna alerta, los datos son confiables y quiénes entran a la lista de campaña?
+Decisión: si hay alertas del modelo, si los datos son confiables y quiénes entran a la lista de campaña.
 RESPONSABLE: (poner nombre)
 """
 import streamlit as st
 
+from src import ayuda
+from src import modelo as M
 from src.config import ALERTA_PP, META_RIESGO
 from src.contexto import contexto
 from src.indicadores import resumen_riesgo, tasa_churn
-from src.vistas import DEFINICIONES, alertas, calidad_datos, tabla_clientes
+from src.modelo_cache import modelo_y_puntajes
+from src.vistas import DEFINICIONES, alertas_modelo, calidad_datos, simular_datos, tabla_clientes
 from src.contrato_datos import resumen_validacion
 from src.demo_validaciones import CASOS as CASOS_DEMO, crear_demostracion
 from src.tablas_datos import configuracion_columnas
@@ -16,70 +19,106 @@ from src.tablas_datos import configuracion_columnas
 c = contexto()
 df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
 
-st.markdown('<h2 class="seccion-titulo">Centro de monitoreo y calidad</h2>', unsafe_allow_html=True)
-st.caption("Alertas verificables, revisión de datos y listas de clientes para campañas · "
-           f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
+ayuda.titulo_pantalla("Centro de monitoreo y calidad", "luis",
+                      "Alertas del modelo, calidad de los datos y lista de clientes para campañas · "
+                      f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
 
-monitoreo, datos, definiciones = st.tabs(["Monitoreo", "Datos", "Definiciones"])
+# Retroalimentación 12-nov: se quitó la pestaña "Datos"; la lista de clientes queda oculta en un desplegable.
+monitoreo, definiciones = st.tabs(["Monitoreo", "Definiciones"])
 
 # ------------------------------------------------------------------ Monitoreo
 with monitoreo:
+    resultado, puntuado_total = modelo_y_puntajes()
+    puntuado = puntuado_total.loc[df.index]  # predicción del modelo para la selección de filtros
     tasa = tasa_churn(df)
     riesgo = resumen_riesgo(df, regla)
     calidad = calidad_datos(df_general)  # la calidad se revisa sobre la base completa
-    llamadas_fraccionarias = int((df_general["Customer_Service_Calls"] % 1 != 0).sum())
-    if llamadas_fraccionarias:
-        st.warning(f"Hay {llamadas_fraccionarias:,} registros con llamadas fraccionarias en el CSV; se conservan sin redondear hasta aclarar su origen.")
+    alertas = alertas_modelo(puntuado, puntuado_total)
+    problemas = calidad["nulos"] + calidad["duplicados"] + calidad["invalidos"]
 
-    m1, m2, m3, m4 = st.columns(4)
+    m1, m2, m3 = st.columns(3)
     m1.metric("Churn de la selección", f"{tasa:.1%}" if len(df) else "—",
-              f"{(tasa - tasa_global) * 100:+.1f} pts vs. línea base", delta_color="inverse")
-    m2.metric("Activos en perfil de riesgo", f"{riesgo['pct_activos']:.1%}" if riesgo["total_activos"] else "—",
-              f"{(riesgo['pct_activos'] - META_RIESGO) * 100:+.1f} pts vs. meta ({META_RIESGO:.1%})",
-              delta_color="inverse")
-    m3.metric("Valores nulos", f"{calidad['nulos']:,}", help=f"Base completa · {calidad['variables']} columnas")
-    m4.metric("Fecha de última carga", "No informada", help="El CSV no incluye metadatos de carga.")
+              f"{(tasa - tasa_global) * 100:+.1f} pts vs. línea base", delta_color="inverse",
+              help="Dato observado: clientes que ya abandonaron.")
+    m2.metric("Activos con riesgo alto (modelo)", f"{alertas[0]['valor']:.1%}",
+              f"{(alertas[0]['valor'] - (alertas[0]['umbral'] - ALERTA_PP)) * 100:+.1f} pts vs. negocio",
+              delta_color="inverse", help="Predicción: activos con probabilidad de abandono de 70% o más.")
+    m3.metric("Problemas de calidad", f"{problemas:,}", help="Nulos, IDs duplicados y valores fuera de rango "
+                                                              "en la base completa.")
 
-    izquierda, derecha = st.columns([1.2, 1], gap="medium")
+    with st.container(border=True):
+        ayuda.titulo_grafica(
+            "Alertas del modelo",
+            "Si los clientes activos de la selección tienen más riesgo de abandono que los del negocio, según el modelo.",
+            f"Rojo = alerta encendida: la selección supera el valor del negocio en más de {ALERTA_PP * 100:.0f} puntos. "
+            "Verde = sin alerta. Cambian con los filtros.",
+            "Si conviene adelantar la campaña de retención para el grupo seleccionado.")
+        if not len(df):
+            st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
+        for alerta in alertas:
+            if alerta["encendida"]:
+                st.error(f"**{alerta['titulo']}** · {alerta['motivo']}", icon=":material/warning:")
+            else:
+                st.success(f"**{alerta['titulo']}**: sin alerta · {alerta['motivo']}", icon=":material/check_circle:")
+        st.caption("Predicción del modelo de regresión logística (pantalla Clientes prioritarios), no dato observado.")
+
+    with st.expander("Probar las alertas con datos modificados (simulación)"):
+        st.info("SIMULACIÓN: se modifica una copia de los datos de la selección y se vuelve a puntuar con el modelo. "
+                "Los datos reales no cambian.")
+        a, b = st.columns(2)
+        llamadas_extra = a.slider("Llamadas a servicio adicionales por cliente", 0, 5, 0, key="l_sim_llamadas")
+        carrito_extra = b.slider("Puntos adicionales de carrito abandonado", 0, 30, 0, 5, key="l_sim_carrito")
+        if len(df):
+            simulado = M.puntuar(simular_datos(df, llamadas_extra, carrito_extra), resultado["modelo"])
+            for antes, despues in zip(alertas, alertas_modelo(simulado, puntuado_total)):
+                estado = "encendida" if despues["encendida"] else "apagada"
+                texto = (f"**{despues['titulo']}**: {antes['valor']:.1%} → **{despues['valor']:.1%}** "
+                         f"(umbral {despues['umbral']:.1%}) · alerta {estado}")
+                (st.error if despues["encendida"] else st.success)(texto)
+            st.caption("Ejemplo para validar: con 1 llamada adicional por cliente, las dos alertas se encienden.")
+
+    izquierda, derecha = st.columns(2, gap="medium")
     with izquierda:
-        with st.container(border=True):
-            st.markdown("### Estado de alertas")
-            for alerta in alertas(tasa, tasa_global, riesgo, calidad):
-                if alerta["encendida"]:
-                    st.error(f"**{alerta['titulo']}** · {alerta['motivo']}", icon=":material/warning:")
-                else:
-                    st.success(f"**{alerta['titulo']}**: sin alerta · {alerta['motivo']}", icon=":material/check_circle:")
-            st.caption("El estado se recalcula con los filtros y la regla activa.")
-        with st.container(border=True):
-            st.markdown("### Regla de riesgo vigente")
-            st.markdown(f"Carrito abandonado **> {regla['carrito_min']:.2f}%** y **{regla['llamadas_min']} o más** "
-                        "llamadas a servicio (ambos criterios a la vez).")
-            st.caption(f"**{riesgo['activos_en_perfil']:,}** activos cumplen la regla · churn histórico del perfil: "
-                       f"**{riesgo['tasa_historica']:.1%}** ({riesgo['clientes_en_perfil']:,} clientes). "
-                       "Se ajusta en *Criterios de riesgo* (panel derecho); *Limpiar filtros* regresa a la regla oficial. "
-                       "Es una regla descriptiva, no una probabilidad individual.")
-    with derecha:
         with st.container(border=True):
             st.markdown("### Calidad y trazabilidad")
             st.markdown(f"""
 | Revisión | Resultado |
 |---|---|
 | Registros | {calidad['registros']:,} |
+| Valores nulos | {calidad['nulos']:,} |
 | IDs duplicados | {calidad['duplicados']:,} |
 | Valores fuera de rango | {calidad['invalidos']:,} |
-| Variables revisadas | {calidad['variables']} |
 """)
+            llamadas_fraccionarias = int((df_general["Customer_Service_Calls"] % 1 != 0).sum())
+            if llamadas_fraccionarias:
+                st.caption(f"{llamadas_fraccionarias:,} registros tienen llamadas fraccionarias en el CSV; se "
+                           "conservan sin redondear hasta aclarar su origen.")
             st.caption("Revisa campos vacíos, IDs repetidos y rangos evidentes (edad, churn 0/1, carrito 0–100%, "
                        "llamadas ≥ 0). No certifica que las transformaciones o unidades sean correctas.")
+    with derecha:
         with st.container(border=True):
-            st.markdown("### Umbrales de seguimiento")
-            st.markdown(f"""
-| Referencia | Valor |
-|---|---|
-| Churn global (línea base) | {tasa_global:.2%} |
-| Umbral de alerta (+{ALERTA_PP * 100:.0f} pts) | {tasa_global + ALERTA_PP:.2%} |
-| Meta de activos en riesgo | menos de {META_RIESGO:.1%} |
-""")
+            st.markdown("### Regla descriptiva de riesgo")
+            st.markdown(f"Carrito abandonado **> {regla['carrito_min']:.2f}%** y **{regla['llamadas_min']} o más** "
+                        f"llamadas: **{riesgo['activos_en_perfil']:,}** activos ({riesgo['pct_activos']:.1%}; "
+                        f"meta: menos de {META_RIESGO:.1%}).")
+            st.caption(f"Churn histórico del perfil: {riesgo['tasa_historica']:.1%}. Se ajusta en *Criterios de "
+                       "riesgo*. Es una regla descriptiva, no una probabilidad individual: las alertas de arriba usan "
+                       "el modelo.")
+
+    with st.expander("Lista de clientes para campaña (oculta)"):
+        a, b = st.columns([1, 2])
+        solo_riesgo = a.toggle("Solo activos en perfil de riesgo", value=True, key="l_solo_riesgo")
+        buscar = b.text_input("Buscar por ID, país o ciudad", key="l_buscar", placeholder="Ej. C00012, UK, Toronto")
+        lista = tabla_clientes(df, regla, solo_riesgo, buscar)
+        st.caption(f"{len(lista):,} clientes en la lista")
+        st.dataframe(lista, column_order=list(lista.columns), hide_index=True,
+                     height=360, use_container_width=True,
+                     column_config=configuracion_columnas(lista))
+        st.download_button("Descargar lista (CSV)", lista.to_csv(index=False).encode("utf-8"),
+                           file_name="lista_campana_retencion.csv", mime="text/csv", disabled=lista.empty)
+        st.caption("Origen por columna: abre la ayuda del encabezado, las cifras originales vienen del CSV y los días "
+                   "sin comprar son calculados con exp(x) − 1, el LTV está en escala logarítmica y no tiene moneda "
+                   "documentada")
 
     with st.expander("Contrato de datos · revisión de tipos y origen de las cifras"):
         comprobacion = resumen_validacion(df_general)
@@ -112,20 +151,6 @@ with monitoreo:
             st.warning("DEMO · El validador no rechazó el caso; revisar las reglas")
         st.caption("El mensaje proviene del validador real. Con ese fallo en el CSV original, "
                    "la aplicación detendría la carga antes de mostrar los datos.")
-
-# ------------------------------------------------------------------ Datos
-with datos:
-    a, b = st.columns([1, 2])
-    solo_riesgo = a.toggle("Solo activos en perfil de riesgo", value=True, key="l_solo_riesgo")
-    buscar = b.text_input("Buscar por ID, país o ciudad", key="l_buscar", placeholder="Ej. C00012, UK, Toronto")
-    lista = tabla_clientes(df, regla, solo_riesgo, buscar)
-    st.caption(f"{len(lista):,} clientes en la lista")
-    st.dataframe(lista, column_order=list(lista.columns), hide_index=True,
-                 height=420, use_container_width=True,
-                 column_config=configuracion_columnas(lista))
-    st.download_button("Descargar lista (CSV)", lista.to_csv(index=False).encode("utf-8"),
-                       file_name="lista_campana_retencion.csv", mime="text/csv", disabled=lista.empty)
-    st.caption("Origen por columna: abre la ayuda del encabezado, las cifras originales vienen del CSV y los días sin comprar son calculados con exp(x) − 1, el LTV está en escala logarítmica y no tiene moneda documentada")
 
 # ------------------------------------------------------------------ Definiciones
 with definiciones:

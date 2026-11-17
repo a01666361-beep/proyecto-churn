@@ -1,10 +1,12 @@
 """
 Pantalla 03 · Carlos Mendoza, director de estrategia y valor del cliente.
-Pregunta: ¿se están yendo los clientes valiosos y en qué segmentos conviene invertir?
+Decisión: si se están yendo los clientes valiosos y en qué segmentos conviene invertir.
 RESPONSABLE: (poner nombre)
 """
 import plotly.graph_objects as go
 import streamlit as st
+
+from src import ayuda
 
 from src.config import AZUL, ROJO, VERDE
 from src.contexto import contexto
@@ -14,9 +16,9 @@ c = contexto()
 df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
 SIN_BARRA = {"displayModeBar": False}
 
-st.markdown('<h2 class="seccion-titulo">Valor del cliente y decisiones estratégicas</h2>', unsafe_allow_html=True)
-st.caption("Identificar dónde se concentra el valor en riesgo, sin atribuir ingresos o ROI que la base no mide · "
-           f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
+ayuda.titulo_pantalla("Valor del cliente y decisiones estratégicas", "carlos",
+                      "Dónde se concentra el valor en riesgo, sin atribuir ingresos o ROI que la base no mide · "
+                      f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
 
 if df.empty:
     st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
@@ -34,7 +36,12 @@ cuartiles = cuartiles_ltv(df, df_general)
 izquierda, derecha = st.columns([1, 1.1], gap="medium")
 with izquierda:
     with st.container(border=True, key="grafica_ltv"):
-        st.markdown("### ¿Se están yendo los clientes más valiosos?")
+        q4 = cuartiles.iloc[-1]
+        ayuda.titulo_grafica(
+            f"Abandono por cuartil de valor: Q4 {q4['tasa']:.1%} vs. negocio {tasa_global:.1%}",
+            "La tasa de abandono de cada cuartil de Lifetime_Value, de menor (Q1) a mayor valor (Q4).",
+            "Barras rojas: el cuartil abandona más que el negocio; verdes: menos. La línea punteada es el churn global.",
+            "Si hay que proteger primero a los clientes de mayor valor.")
         barras = go.Figure(go.Bar(
             x=cuartiles["cuartil"].astype(str), y=cuartiles["tasa"] * 100,
             marker_color=[ROJO if t > tasa_global else VERDE for t in cuartiles["tasa"]],
@@ -52,7 +59,11 @@ with izquierda:
 
 with derecha:
     with st.container(border=True, key="tabla_paises"):
-        st.markdown("### Segmentos de valor por país")
+        ayuda.titulo_grafica(
+            "Segmentos de valor por país",
+            "Por país: clientes, churn, mediana de Lifetime_Value y activos en perfil de riesgo.",
+            "Ordenado por churn. La mediana LTV está en escala logarítmica, no es dinero.",
+            "En qué países conviene concentrar la inversión en retención.")
         paises = valor_por_pais(df, regla)
         st.dataframe(paises, column_order=list(paises.columns), hide_index=True, use_container_width=True, height=330, column_config={
             "Churn": st.column_config.ProgressColumn(format="percent", min_value=0, max_value=1),
@@ -68,7 +79,11 @@ with derecha:
 izquierda, derecha = st.columns(2, gap="medium")
 with izquierda:
     with st.container(border=True):
-        st.markdown("### Escenario de mejora del churn")
+        ayuda.titulo_grafica(
+            "Escenario de mejora del churn",
+            "SIMULACIÓN: cuántos clientes se retendrían si el churn bajara los puntos elegidos.",
+            "Es aritmética (clientes × reducción supuesta), no un pronóstico del efecto de una campaña.",
+            "Dimensionar el beneficio potencial antes de pedir presupuesto.")
         puntos = st.slider("Reducción hipotética (puntos porcentuales)", 0.5, 5.0, 1.0, 0.5, key="c_puntos")
         alto_valor = cuartiles.iloc[-1]
         st.metric("SIMULACIÓN · Clientes que se retendrían", f"{escenario(r['clientes'], puntos):,}")

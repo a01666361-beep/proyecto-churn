@@ -1,26 +1,27 @@
 """
 Pantalla 01 · Andrea López, gerente de retención.
-Pregunta: ¿dónde se concentra el abandono y a qué segmentos conviene dirigir la campaña?
+Decisión: a qué segmentos dirigir la campaña de retención.
 RESPONSABLE: (poner nombre)
 """
 import plotly.graph_objects as go
 import streamlit as st
 
-from src import seccion_grupo, seccion_kpis, ventanas
+from src import ayuda, seccion_grupo, seccion_kpis, ventanas
 from src.config import AZUL, META_CHURN, MINIMO_SEGMENTO, ROJO, VERDE
 from src.contexto import contexto
 from src.graficas import separar_panel
 from src.seccion_factores import figura_factores
 from src.seccion_riesgo import figura_riesgo
+from src.indicadores import resumen_riesgo
 from src.vistas import DIMENSIONES, churn_por_segmento
 
 c = contexto()
 df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
 SIN_BARRA = {"displayModeBar": False}
 
-st.markdown('<h2 class="seccion-titulo">Panorama para priorizar campañas</h2>', unsafe_allow_html=True)
-st.caption(f"¿Dónde se concentra el abandono y a qué segmentos conviene dar seguimiento? · "
-           f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
+ayuda.titulo_pantalla("Panorama para priorizar campañas", "andrea",
+                      "Concentración del abandono por segmento y por perfil de riesgo · "
+                      f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
 
 # Dos KPI: tasa de abandono y activos en perfil de riesgo (se quitó la tarjeta de clientes por retroalimentación)
 k1, k2 = st.columns(2, gap="medium")
@@ -33,11 +34,24 @@ if df.empty:
     st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
     st.stop()
 
+# Retroalimentación 12-nov: el peso del grupo seleccionado en el problema sube junto a los KPI.
+seccion_grupo.mostrar(df, df_general, regla, {
+    "País": st.session_state.get("f_pais", []),
+    "Género": st.session_state.get("f_genero", []),
+    "Edad": st.session_state.get("f_edad", []),
+})
+
 tasa = df["Churned"].mean() * 100
 izquierda, derecha = st.columns([1, 1.25], gap="medium")
 with izquierda:
     with st.container(border=True, key="grafica_meta"):
-        st.markdown("### ¿Qué tan lejos estamos de la meta?")
+        meta_actual = st.session_state.get("a_meta", META_CHURN * 100)
+        ayuda.titulo_grafica(
+            f"Abandono {tasa:.1f}% vs. meta {meta_actual:.1f}%",
+            "La tasa de abandono del grupo seleccionado comparada con la meta de churn, y la proporción de activos "
+            "contra los que ya abandonaron.",
+            "La barra es el abandono actual y la línea azul la meta. Barra roja: estamos arriba de la meta; verde: abajo.",
+            "Qué tan urgente es la campaña de retención para este grupo.")
         meta = st.number_input("Meta de churn (%)", min_value=0.0, max_value=100.0,
                                value=META_CHURN * 100, step=0.5, key="a_meta",
                                help="Meta propuesta por el equipo; Andrea la puede ajustar.")
@@ -64,16 +78,32 @@ with izquierda:
 
 with derecha:
     with st.container(border=True, key="grafica_mapa"):
-        st.markdown("### ¿Qué combinaciones de carrito y llamadas tienen más abandono?")
+        corr = df[["Cart_Abandonment_Rate", "Customer_Service_Calls"]].corrwith(df["Churned"])
+        perfil = resumen_riesgo(df, regla)
+        ayuda.titulo_grafica(
+            f"Carrito y llamadas: {perfil['tasa_historica']:.1%} de abandono en el perfil de riesgo "
+            f"(r = {corr['Cart_Abandonment_Rate']:.2f} y {corr['Customer_Service_Calls']:.2f})",
+            "El abandono para cada combinación de carrito abandonado y llamadas a servicio, y los activos en riesgo "
+            "por país.",
+            "Cada celda es la tasa de abandono de esa combinación: rojo = alta, verde = baja. r es la correlación de "
+            "cada variable con el abandono (de −1 a 1).",
+            "De aquí sale la regla de riesgo que define a quién contactar.")
         mapa = separar_panel(figura_riesgo(df, regla), 1, alto=390)
         st.plotly_chart(mapa, key="mapa", use_container_width=True, config=SIN_BARRA)
         st.caption(f"De aquí sale la regla de riesgo: carrito > {regla['carrito_min']:.2f}% y "
                    f"{regla['llamadas_min']} o más llamadas. Pasa el cursor para ver cuántos clientes hay en cada celda.")
 
 with st.container(border=True, key="grafica_segmentos"):
-    st.markdown("### ¿Qué segmentos abandonan más y qué tan grandes son?")
-    dimension = st.radio("Comparar por", list(DIMENSIONES), horizontal=True, key="a_dimension")
+    dimension = st.session_state.get("a_dimension", list(DIMENSIONES)[0])
     tabla = churn_por_segmento(df, dimension)
+    ayuda.titulo_grafica(
+        (f"Abandono por {dimension.lower()}: {tabla.iloc[0]['segmento']} con {tabla.iloc[0]['tasa']:.1%} "
+         f"(negocio {tasa_global:.1%})") if not tabla.empty else f"Abandono por {dimension.lower()}",
+        "La tasa de abandono y el tamaño de cada segmento.",
+        "Barras rojas: el segmento abandona más que el negocio; verdes: menos. La línea punteada es el churn global. "
+        "La etiqueta muestra tasa · clientes.",
+        "A qué segmentos dirigir primero la campaña, considerando también su tamaño.")
+    st.radio("Comparar por", list(DIMENSIONES), horizontal=True, key="a_dimension")
     if tabla.empty:
         st.info(f"Ningún segmento tiene {MINIMO_SEGMENTO} clientes o más con estos filtros.")
     else:
@@ -98,6 +128,12 @@ with st.container(border=True, key="grafica_segmentos"):
                            file_name=f"segmentos_{dimension.lower()}.csv", mime="text/csv")
 
 with st.expander("Comportamientos relacionados: llamadas y días sin comprar"):
+    ayuda.titulo_grafica(
+        "Llamadas y días sin comprar contra el abandono",
+        "Cómo cambia el abandono según el número de llamadas a servicio y los días desde la última compra.",
+        "Cada barra es la tasa de abandono del rango; la línea punteada es el churn del negocio. "
+        "El título de cada gráfica trae su correlación r con el abandono.",
+        "Qué comportamiento usar como disparador de una acción de retención.", nivel="####")
     factores = figura_factores(df, tasa_global)
     a, b = st.columns(2, gap="medium")
     with a:
@@ -105,13 +141,6 @@ with st.expander("Comportamientos relacionados: llamadas y días sin comprar"):
     with b:
         st.plotly_chart(separar_panel(factores, 3), key="dias", use_container_width=True, config=SIN_BARRA)
     st.caption("Verde: menor abandono que el negocio; rojo: mayor.")
-
-with st.expander("¿Qué parte del problema está en este grupo?"):
-    seccion_grupo.mostrar(df, df_general, regla, {
-        "País": st.session_state.get("f_pais", []),
-        "Género": st.session_state.get("f_genero", []),
-        "Edad": st.session_state.get("f_edad", []),
-    })
 
 if st.button("Todas las variables"):
     ventanas.ventana_variables(df, tasa_global)

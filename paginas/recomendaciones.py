@@ -1,9 +1,11 @@
 """
 Pantalla 04 · Recomendaciones finales.
-Pregunta: ¿qué acciones conviene tomar primero, a cuántos clientes activos llegan y cómo se mide si funcionaron?
+Decisión: qué acciones tomar primero, a cuántos clientes activos llegan y cómo se mide si funcionaron.
 RESPONSABLE: (poner nombre)
 """
 import streamlit as st
+
+from src import ayuda
 
 from src.contexto import contexto
 from src.resumen import recomendaciones, tabla_recomendaciones
@@ -11,9 +13,9 @@ from src.resumen import recomendaciones, tabla_recomendaciones
 c = contexto()
 df, df_general, regla = c.df_filtrado, c.df, c.regla
 
-st.markdown('<h2 class="seccion-titulo">Recomendaciones finales</h2>', unsafe_allow_html=True)
-st.caption("Acciones ordenadas por prioridad, cada una con el dato que la respalda · "
-           f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
+ayuda.titulo_pantalla("Recomendaciones finales", "recomendaciones",
+                      "Acciones ordenadas por prioridad, cada una con el dato que la respalda · "
+                      f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
 
 lista = recomendaciones(df, df_general, regla)
 if not lista:
@@ -22,7 +24,11 @@ if not lista:
 
 # ------------------------------------------------------------------ Resumen de prioridades
 with st.container(border=True):
-    st.markdown("### Prioridades")
+    ayuda.titulo_grafica(
+        "Prioridades",
+        "Las acciones ordenadas por prioridad y a cuántos clientes activos aplica cada una.",
+        "La prioridad 1 es por donde conviene empezar. Los activos de cada fila no se suman.",
+        "Qué acción lanzar primero.")
     st.dataframe(tabla_recomendaciones(lista), hide_index=True, use_container_width=True,
                  column_config={"Activos a contactar": st.column_config.NumberColumn(format="localized")})
     st.caption("Un mismo cliente puede estar en varios grupos, así que los activos de cada fila no se suman. "
