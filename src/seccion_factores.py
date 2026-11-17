@@ -11,10 +11,12 @@ def _color(tasa, global_):
 
 
 def figura_factores(df, tasa_global, alto=280):
+    corr = df[["Customer_Service_Calls", "Cart_Abandonment_Rate", "Dias_Sin_Comprar"]].corrwith(df["Churned"])
+    r = lambda v: "r sin dato" if v != v else f"r = {v:.2f}"  # noqa: E731 (NaN si no hay variación)
     fig = make_subplots(rows=1, cols=3, horizontal_spacing=0.10,
-                        subplot_titles=["¿Qué rangos de llamadas<br>tienen más abandono?",
-                                        "¿Cómo difiere el carrito<br>entre grupos?",
-                                        "¿Cómo cambia el abandono<br>con la inactividad?"])
+                        subplot_titles=[f"Abandono por rango de llamadas<br>({r(corr['Customer_Service_Calls'])})",
+                                        f"Carrito abandonado por grupo<br>({r(corr['Cart_Abandonment_Rate'])})",
+                                        f"Abandono por días sin comprar<br>({r(corr['Dias_Sin_Comprar'])})"])
     llamadas = tasa_por_rango(df, "Customer_Service_Calls")
     fig.add_trace(go.Bar(
         x=[t * 100 if n else None for t, n in zip(llamadas.tasa, llamadas.clientes)],

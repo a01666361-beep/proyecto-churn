@@ -46,7 +46,7 @@ def mostrar(df, df_general, regla, filtros):
         "activos de este grupo tienen señales de riesgo.", "activos con señales de riesgo",
     )
     html = f'''<div class="grupo-bloque">
-      <h3>¿Qué parte del problema está en este grupo?</h3>
+      <h3>Peso de este grupo en el problema</h3>
       <p class="grupo-contexto">{seleccion} · {len(df):,} clientes en este grupo</p>
       <div class="grupo-columnas">{tarjetas}</div>
       <p class="grupo-nota">Las barras muestran cuánto representa este grupo dentro del negocio.

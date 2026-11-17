@@ -75,6 +75,45 @@ def alertas(tasa_seleccion, tasa_global, riesgo, calidad):
     ]
 
 
+def alertas_modelo(puntuado, puntuado_total, margen=ALERTA_PP):
+    """Alertas basadas en la probabilidad del modelo (predicción, no dato observado).
+
+    Comparan a los clientes ACTIVOS de la selección contra los activos de todo el negocio. Una alerta se
+    enciende cuando la selección supera el valor del negocio más `margen` (2 puntos, igual que la alerta de churn).
+    Son dinámicas: cambian con los filtros y con los datos que se puntúan.
+    """
+    def medidas(tabla):
+        activos = tabla[tabla["Churned"] == 0]
+        if activos.empty:
+            return 0, 0.0, 0.0
+        alto = int((activos["Nivel_Riesgo"] == "Alto").sum())
+        return alto, alto / len(activos), float(activos["Probabilidad"].mean())
+
+    n_sel, pct_sel, prob_sel = medidas(puntuado)
+    _, pct_tot, prob_tot = medidas(puntuado_total)
+    return [
+        {"titulo": "Activos con riesgo alto según el modelo",
+         "valor": pct_sel, "umbral": pct_tot + margen, "encendida": bool(pct_sel > pct_tot + margen),
+         "motivo": (f"{pct_sel:.1%} de los activos ({n_sel:,} clientes) tiene probabilidad de abandono de 70% o más · "
+                    f"umbral {pct_tot + margen:.1%} (negocio {pct_tot:.1%} + {margen * 100:.0f} pts)")},
+        {"titulo": "Probabilidad promedio de abandono de los activos",
+         "valor": prob_sel, "umbral": prob_tot + margen, "encendida": bool(prob_sel > prob_tot + margen),
+         "motivo": (f"{prob_sel:.1%} en la selección · umbral {prob_tot + margen:.1%} "
+                    f"(negocio {prob_tot:.1%} + {margen * 100:.0f} pts)")},
+    ]
+
+
+def simular_datos(df, llamadas_extra=0, carrito_extra=0.0):
+    """SIMULACIÓN: copia de los datos con más llamadas y más carrito abandonado, para probar las alertas.
+
+    No modifica la base original. El carrito se limita a 0–100% (rango del contrato de datos).
+    """
+    copia = df.copy()
+    copia["Customer_Service_Calls"] = copia["Customer_Service_Calls"] + llamadas_extra
+    copia["Cart_Abandonment_Rate"] = (copia["Cart_Abandonment_Rate"] + carrito_extra).clip(0, 100)
+    return copia
+
+
 COLUMNAS_LISTA = {
     "Customer_ID": "ID", "Country": "País", "City": "Ciudad", "Age": "Edad",
     "Cart_Abandonment_Rate": "Carrito abandonado (%)", "Customer_Service_Calls": "Llamadas",

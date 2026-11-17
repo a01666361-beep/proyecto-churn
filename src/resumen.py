@@ -93,14 +93,14 @@ def recomendaciones(df, df_general, regla):
     p = f["perfil"]
     lista.append({
         "titulo": "Contactar primero a los activos en perfil de riesgo",
-        "accion": ("Usar la lista de la pantalla 02 (pestaña Datos) para una campaña de retención directa: "
+        "accion": ("Usar la lista de la pantalla de Luis (lista de clientes) para una campaña de retención directa: "
                    "llamada o correo personalizado y una oferta para recuperar el carrito."),
         "por_que": (f"Cumplen carrito > {regla['carrito_min']:.2f}% y {regla['llamadas_min']}+ llamadas. "
                     f"En este perfil abandonó el {p['tasa_dentro']:.1%} de los clientes, contra "
                     f"{p['tasa_fuera']:.1%} del resto."),
         "a_quien": p["activos"],
         "medir": f"% de activos en perfil de riesgo: bajar de la situación actual a menos de {META_RIESGO:.1%}.",
-        "pantalla": "02 · Alertas y calidad",
+        "pantalla": "Luis · Monitoreo y calidad",
     })
 
     ll = f["llamadas"]
@@ -112,7 +112,7 @@ def recomendaciones(df, df_general, regla):
                     f"{ll['tasa_fuera']:.1%} con menos llamadas."),
         "a_quien": ll["activos"],
         "medir": "Churn y número de llamadas de los clientes que entren a la alerta, contra los que no.",
-        "pantalla": "01 · Priorizar campañas (mapa de calor)",
+        "pantalla": "Andrea · Priorizar campañas (mapa de calor)",
     })
 
     ca = f["carrito"]
@@ -124,7 +124,7 @@ def recomendaciones(df, df_general, regla):
                     f"contra {ca['tasa_fuera']:.1%} del resto."),
         "a_quien": ca["activos"],
         "medir": "Tasa de carrito abandonado y churn de este grupo antes y después de la campaña.",
-        "pantalla": "01 · Priorizar campañas (mapa de calor)",
+        "pantalla": "Andrea · Priorizar campañas (mapa de calor)",
     })
 
     di = f["dias"]
@@ -135,7 +135,7 @@ def recomendaciones(df, df_general, regla):
                     f"{di['tasa_fuera']:.1%} de quienes compraron más recientemente."),
         "a_quien": di["activos"],
         "medir": f"% de clientes que vuelve a comprar después de la campaña y churn de quienes pasan de {DIAS_REACTIVAR} días.",
-        "pantalla": "01 · Priorizar campañas (comportamientos relacionados)",
+        "pantalla": "Andrea · Priorizar campañas (comportamientos relacionados)",
     })
 
     seg = segmento_critico(df)
@@ -149,7 +149,7 @@ def recomendaciones(df, df_general, regla):
                         f"({seg['clientes']:,} clientes)."),
             "a_quien": seg["activos"],
             "medir": f"Churn del segmento {seg['segmento']} contra el de la selección.",
-            "pantalla": "01 · Priorizar campañas (segmentos)",
+            "pantalla": "Andrea · Priorizar campañas (segmentos)",
         })
 
     va = valor_alto(df, df_general)
@@ -162,7 +162,7 @@ def recomendaciones(df, df_general, regla):
                         "de los cuartiles intermedios (Q2 y Q3)."),
             "a_quien": va["activos_q4"],
             "medir": "Churn del cuartil Q4 de Lifetime_Value.",
-            "pantalla": "03 · Valor y presupuesto",
+            "pantalla": "Carlos · Valor y presupuesto",
         })
 
     return [r for r in lista if r["a_quien"] > 0]

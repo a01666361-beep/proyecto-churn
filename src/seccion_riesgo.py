@@ -21,7 +21,7 @@ def figura_riesgo(df, regla, alto=260):
     pais = riesgo_por_pais(df, regla)
 
     fig = make_subplots(rows=1, cols=2, column_widths=[0.58, 0.42], horizontal_spacing=0.12,
-                        subplot_titles=["¿Qué combinaciones concentran más abandono?", "Activos en riesgo por país"])
+                        subplot_titles=["Abandono por carrito × llamadas", "Activos en riesgo por país"])
 
     z = tasa * 100
     texto = [[("Sin datos" if v != v else f"{v:.1f}%") for v in fila] for fila in z.values]
