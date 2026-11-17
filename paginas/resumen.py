@@ -33,7 +33,7 @@ with st.container(border=True):
         f"De **{s['clientes']:,} clientes**, **{s['abandonaron']:,} abandonaron la plataforma ({s['tasa']:.1%})**, "
         f"{estado_churn} de la meta de churn de {s['meta_churn']:.0%}. "
         f"De los {s['activos']:,} que siguen activos, **{r['activos_en_perfil']:,} ({r['pct_activos']:.1%}) "
-        f"tienen el perfil de riesgo**, {estado_riesgo} de la meta de menos de {s['meta_riesgo']:.0%}. "
+        f"tienen el perfil de riesgo**, {estado_riesgo} de la meta de menos de {s['meta_riesgo']:.1%}. "
         "Esos son los clientes a contactar primero."
     )
 
@@ -86,5 +86,6 @@ with st.container(border=True):
 | Análisis por usuario | **Carlos · Valor y presupuesto** | Carlos Mendoza, estrategia y valor | Si se están yendo los clientes valiosos y dónde conviene invertir |
 | Modelo predictivo | **Clientes prioritarios** | Andrea y Luis | A qué clientes contactar primero según su probabilidad de abandono y su segmento |
 | Plan de acción | **Recomendaciones** | Todo el equipo | Qué acciones tomar primero y cómo medir si funcionaron |
+| Modelo predictivo | **Segmentos** | Andrea y Carlos | Qué tipo de cliente se va más y a quién de cada segmento contactar primero |
 """)
     st.caption("Los filtros de la derecha aplican a todas las pantallas y se conservan al cambiar de una a otra.")

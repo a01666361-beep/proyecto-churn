@@ -10,7 +10,7 @@ from src import modelo as M
 from src.config import ALERTA_PP, META_RIESGO
 from src.contexto import contexto
 from src.indicadores import resumen_riesgo, tasa_churn
-from src.modelo_cache import modelo_y_puntajes
+from src.puntuacion import modelo_y_puntuacion as modelo_y_puntajes
 from src.vistas import DEFINICIONES, alertas_modelo, calidad_datos, simular_datos, tabla_clientes
 from src.contrato_datos import resumen_validacion
 from src.demo_validaciones import CASOS as CASOS_DEMO, crear_demostracion
