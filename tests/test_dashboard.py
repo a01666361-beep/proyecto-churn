@@ -129,7 +129,7 @@ class DashboardRegression(unittest.TestCase):
     def test_retroalimentacion_12_noviembre(self):
         a = self.app()
         for pagina in ["paginas/resumen.py", "paginas/andrea.py", "paginas/luis.py", "paginas/carlos.py",
-                       "paginas/clientes.py", "paginas/recomendaciones.py"]:
+                       "paginas/clientes.py", "paginas/segmentos.py", "paginas/recomendaciones.py"]:
             with self.subTest(pagina=pagina):
                 a.switch_page(pagina).run(timeout=120)
                 self.assertFalse(a.exception, [e.message for e in a.exception])

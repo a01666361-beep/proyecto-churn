@@ -53,7 +53,7 @@ class PantallasNuevas(unittest.TestCase):
 
     def test_clientes_muestra_la_explicacion(self):
         a = self.app("paginas/clientes.py")
-        self.assertIn("¿Por qué este cliente aparece con este riesgo?", " ".join(m.value for m in a.markdown))
+        self.assertIn("Explicación por cliente: las 5 variables que más pesan en su riesgo", " ".join(m.value for m in a.markdown))
         self.assertTrue(any(s.key == "explicar_cliente" for s in a.selectbox))
 
     def test_segmentos_se_dibuja_y_suma_la_base(self):
