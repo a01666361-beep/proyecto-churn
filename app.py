@@ -1,12 +1,11 @@
-"""Dashboard Equipo 5: resumen general, tres pantallas (una por user persona) y recomendaciones.
+"""Dashboard Equipo 5. El menú se separa en cuatro bloques (retroalimentación del 12 de noviembre):
 
-00 Resumen general                         → paginas/resumen.py
-01 Andrea López · gerente de retención     → paginas/andrea.py
-02 Luis Ramírez · operaciones de datos/CRM → paginas/luis.py
-03 Carlos Mendoza · estrategia y valor     → paginas/carlos.py
-04 Recomendaciones finales                 → paginas/recomendaciones.py
-05 Clientes prioritarios (modelo)          → paginas/clientes.py
-06 Segmentos de clientes (K-Means)         → paginas/segmentos.py
+Inicio                → Resumen general                    (paginas/resumen.py)
+Análisis por usuario  → Andrea López · gerente de retención (paginas/andrea.py)
+                        Luis Ramírez · operaciones y CRM    (paginas/luis.py)
+                        Carlos Mendoza · estrategia y valor (paginas/carlos.py)
+Modelo predictivo     → Clientes prioritarios               (paginas/clientes.py)
+Plan de acción        → Recomendaciones                     (paginas/recomendaciones.py)
 
 Los filtros (país, género, edad y criterios de riesgo) están a la derecha y son
 los mismos para todas las pantallas.
@@ -27,15 +26,22 @@ except (ErrorContrato, ValueError, FileNotFoundError) as exc:
     st.stop()
 estilos.aplicar()
 
-pantalla = st.navigation([
-    st.Page("paginas/resumen.py", title="00 · Resumen general", icon=":material/summarize:", default=True),
-    st.Page("paginas/andrea.py", title="01 · Andrea · Priorizar campañas", icon=":material/campaign:"),
-    st.Page("paginas/luis.py", title="02 · Luis · Alertas y calidad", icon=":material/notifications:"),
-    st.Page("paginas/carlos.py", title="03 · Carlos · Valor y presupuesto", icon=":material/payments:"),
-    st.Page("paginas/recomendaciones.py", title="04 · Recomendaciones", icon=":material/task_alt:"),
-    st.Page("paginas/clientes.py", title="05 · Clientes prioritarios", icon=":material/person_search:"),
-    st.Page("paginas/segmentos.py", title="06 · Segmentos", icon=":material/groups:"),
-], position="top")
+pantalla = st.navigation({
+    "Inicio": [
+        st.Page("paginas/resumen.py", title="Resumen general", icon=":material/summarize:", default=True),
+    ],
+    "Análisis por usuario": [
+        st.Page("paginas/andrea.py", title="Andrea · Priorizar campañas", icon=":material/campaign:"),
+        st.Page("paginas/luis.py", title="Luis · Monitoreo y calidad", icon=":material/notifications:"),
+        st.Page("paginas/carlos.py", title="Carlos · Valor y presupuesto", icon=":material/payments:"),
+    ],
+    "Modelo predictivo": [
+        st.Page("paginas/clientes.py", title="Clientes prioritarios", icon=":material/person_search:"),
+    ],
+    "Plan de acción": [
+        st.Page("paginas/recomendaciones.py", title="Recomendaciones", icon=":material/task_alt:"),
+    ],
+}, position="top")
 
 estilos.encabezado("Abandono de clientes")
 principal, lateral = st.columns([4, 1], gap="large")

@@ -19,33 +19,45 @@ Dashboard en Streamlit con un **resumen general**, **tres pantallas (una por use
 
 | Observación | Qué cambió | Dónde quedó |
 |---|---|---|
-| Hacer una pantalla donde se vieran bien los colores | Se unificó la identidad visual CartPulse: fondo oscuro, azul para datos, naranja para alertas y cian para estados favorables | `.streamlit/config.toml`, `src/config.py` y `src/estilos.py` |
+| Hacer una pantalla donde se vieran bien los colores | La paleta cambió a azules: azul para información y referencias, verde para lo favorable y rojo para lo desfavorable. Se documentó la paleta en este README | `.streamlit/config.toml`, `src/config.py`, `src/estilos.py` y la sección "Paleta de colores" de este README |
 | Poner KPI más pequeños | Las tarjetas se compactaron y quedaron en una sola fila arriba. La explicación del cálculo se abre con "Ver comparación y explicación" para no ocupar espacio | `src/seccion_kpis.py`, `src/estilos.py` y `paginas/andrea.py` (fila de KPI) |
 | Retroalimentación posterior: quitar el total de clientes; con uno o dos indicadores basta | Se quitó la tarjeta de clientes. Quedan 2 KPI: tasa de abandono y activos en perfil de riesgo | `paginas/andrea.py`, `src/seccion_kpis.py` |
 | Retroalimentación posterior: agregar un resumen general al inicio y recomendaciones finales | Pantalla 00 (situación, hallazgos y guía de uso) y pantalla 04 (acciones priorizadas con su dato de respaldo y cómo medirlas). Ambas se recalculan con los filtros | `paginas/resumen.py`, `paginas/recomendaciones.py`, `src/resumen.py` |
 
 ## Documentos del entregable
 
-- **Parte 1 — Investigación:** [`investigacion/claude.md`](investigacion/claude.md), resumen del ciclo de Anthropic y tres cambios propuestos.
-- **Parte 2 — Validación:** [`contrato-datos.md`](contrato-datos.md), [`prompts/B2.md`](prompts/B2.md), pruebas en `tests/` y [workflow de GitHub Actions](.github/workflows/validacion-datos.yml).
-- **Parte 3 — Propuestas individuales:** [carpeta `ideas/`](ideas/) con un Markdown por integrante.
-- **Bloque anterior:** [`contrato-prompt.md`](contrato-prompt.md) y [`prompts/contrato-prompts.md`](prompts/contrato-prompts.md).
+- `contrato-prompt.md`: contrato del prompt (qué muestra el tablero y la forma de la salida).
+- `prompts/contrato-prompts.md`: registro de prompts del bloque 1, con su etapa del SDLC.
+
+## Observaciones de la sesión del 12 de noviembre
+
+| # | Observación | Qué cambió | Dónde quedó |
+|---|---|---|---|
+| 1 | Botón "?" de cómo usar el dashboard en todas las pantallas | Botón "?" junto al título de cada pantalla con: para qué sirve, pasos de uso, cómo leer los indicadores y cómo funcionan los filtros | `src/ayuda.py` (`titulo_pantalla`) y las 6 pantallas |
+| 2 | No usar preguntas como títulos; usar KPI y su correlación | Los subtítulos ahora dicen el dato: por ejemplo "Abandono 28.9% vs. meta 25.0%", "Carrito y llamadas: 63.8% de abandono en el perfil de riesgo (r = 0.28 y 0.29)" y "Abandono por cuartil de valor: Q4 39.6% vs. negocio 28.9%". Las gráficas de factores muestran su r | `paginas/*.py`, `src/seccion_factores.py`, `src/seccion_riesgo.py`, `src/seccion_grupo.py` |
+| 3 | Cada gráfica explica lo que enseña | Botón "ⓘ" junto al título de cada gráfica: qué enseña, cómo leerla y qué decisión apoya. Streamlit no detecta el doble clic sobre una gráfica (Plotly lo usa para regresar el zoom), por eso es un clic en "ⓘ" | `src/ayuda.py` (`titulo_grafica`) |
+| 4 | Separar el dashboard | El menú se agrupa en cuatro bloques: Inicio, Análisis por usuario (Andrea, Luis y Carlos), Modelo predictivo y Plan de acción | `app.py` |
+| 5 | Subir la información del grupo problema | "Peso de este grupo en el problema" pasó del final (desplegable) a justo debajo de los KPI | `paginas/andrea.py`, `src/seccion_grupo.py` |
+| 6 | Menos alertas; dinámicas, basadas en el modelo y funcionales | Dos alertas calculadas con la probabilidad del modelo: % de activos con riesgo alto (≥ 70%) y probabilidad promedio de los activos, contra el negocio + 2 pts. Cambian con los filtros (con 18 a 29 años se encienden). Se validan en "Probar las alertas con datos modificados" (simulación sobre una copia: con 1 llamada más por cliente se encienden). La calidad de datos dejó de ser alerta | `paginas/luis.py`, `src/vistas.py` (`alertas_modelo`, `simular_datos`), `src/modelo_cache.py` |
+| 7 | Quitar u ocultar el dataset | Se quitó la pestaña "Datos". La lista de clientes queda en un desplegable cerrado (con descarga) en Luis y en Clientes prioritarios | `paginas/luis.py`, `paginas/clientes.py` |
+
+Pruebas que verifican estos cambios: `test_retroalimentacion_12_noviembre` y `test_alertas_del_modelo_son_dinamicas` en `tests/test_dashboard.py`.
 
 ## Pantallas del dashboard
 
-El menú de arriba cambia de pantalla. Los filtros de la derecha (país, género, edad y **Criterios de riesgo**) son los mismos para todas las pantallas y se conservan al cambiar.
+El menú de arriba está separado en cuatro bloques. Los filtros de la derecha (país, género, edad y **Criterios de riesgo**) son los mismos para todas las pantallas y se conservan al cambiar. Cada pantalla tiene un botón "?" con su guía de uso.
 
-| Pantalla | User persona | Pregunta que responde | Qué muestra |
-|---|---|---|---|
-| **00 · Resumen general** (`paginas/resumen.py`) | Todo el equipo | ¿Cuál es la situación del abandono y qué está relacionado con él? | Situación actual contra metas, 6 hallazgos (llamadas, carrito, días sin comprar, perfil de riesgo, segmento y valor) y guía de uso de las pantallas |
-| **01 · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | ¿Dónde se concentra el abandono y a qué segmentos dirigir la campaña? | 2 KPI (abandono y riesgo), churn contra meta editable (25%), dona, mapa de calor carrito × llamadas, churn por edad / país / ciudad / antigüedad con exportación CSV |
-| **02 · Alertas y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | ¿Hay alertas, los datos son confiables y quién entra a la lista? | Pestañas Monitoreo (alertas +2 pts y meta de 4.5%, calidad de datos), Datos (lista de activos en riesgo con búsqueda y descarga) y Definiciones |
-| **03 · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | ¿Se van los clientes valiosos y dónde invertir? | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
-| **04 · Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | ¿Qué hacer primero y cómo medir si funcionó? | Tabla de prioridades y, por acción: qué hacer, por qué (dato), activos a quienes aplica, cómo medirlo y siguientes pasos |
-| **05 · Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | ¿A qué clientes contactar primero y qué explica su riesgo? | Pestañas Scoring (toda la base ordenada por probabilidad, niveles Alto/Medio/Bajo, descarga CSV), Segmentos (3 clusters con perfil y nombre) y Modelo y variables (métricas, matriz de confusión y coeficientes) |
+| Bloque | Pantalla | User persona | Decisión que habilita | Qué muestra |
+|---|---|---|---|---|
+| Inicio | **Resumen general** (`paginas/resumen.py`) | Todo el equipo | Entender la situación antes de entrar al detalle | Situación actual contra metas, 6 hallazgos y pantallas del dashboard |
+| Análisis por usuario | **Andrea · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | A qué segmentos dirigir la campaña | 2 KPI, peso del grupo en el problema, abandono contra meta editable (25%), mapa de calor carrito × llamadas y abandono por segmento con exportación CSV |
+| Análisis por usuario | **Luis · Monitoreo y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | Si hay alertas, si los datos son confiables y quién entra a la lista | Alertas del modelo con simulación para validarlas, calidad de datos, regla descriptiva de riesgo, lista de clientes oculta, contrato de datos y definiciones |
+| Análisis por usuario | **Carlos · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | Si se van los clientes valiosos y dónde invertir | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
+| Modelo predictivo | **Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | A qué clientes contactar primero | Scoring (niveles Alto/Medio/Bajo, lista oculta con descarga), Segmentos (3 clusters con validación estadística completa) y Modelo y variables |
+| Plan de acción | **Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | Qué hacer primero y cómo medirlo | Tabla de prioridades y, por acción: qué hacer, por qué, activos a quienes aplica y cómo medirlo |
 
 - **Limpiar filtros** restaura la selección y la regla oficial.
-- Azul: datos y referencias; naranja: alertas o resultados desfavorables; cian: estados favorables y selecciones. La tasa general es una comparación, no una meta.
+- Azul: información y referencias; verde/rojo: lectura favorable/desfavorable según la referencia indicada. La tasa general es una comparación, no una meta.
 
 Comprobación de funcionamiento: `python -m unittest discover -s tests -v`.
 
@@ -71,7 +83,7 @@ La app se abre en el navegador en `http://localhost:8501`.
 
 ```
 proyecto-churn/
-├── app.py                  ← archivo de entrada: menú de 6 pantallas y filtros
+├── app.py                  ← archivo de entrada: menú de 5 pantallas y filtros
 ├── paginas/
 │   ├── resumen.py          ← pantalla 00 · resumen general
 │   ├── andrea.py           ← pantalla 01 · priorizar campañas
@@ -85,7 +97,7 @@ proyecto-churn/
 ├── notebooks/              ← Colab de las evidencias 1 y 2
 └── src/
     ├── config.py           ← rutas, metas, rangos, nombres y colores
-    ├── estilos.py          ← identidad visual y estilos CartPulse
+    ├── estilos.py          ← CSS para que todo quepa en una pantalla
     ├── limpieza.py         ← carga y limpieza (Evidencia 1)
     ├── indicadores.py      ← cálculo de los KPI (solo pandas)
     ├── filtros.py          ← panel de filtros (derecha)
@@ -133,20 +145,20 @@ proyecto-churn/
 3. En "Main file path" escribir `app.py` y dar Deploy.
 
 ### Archivos de configuración
-- `.streamlit/config.toml`: tema oscuro y paleta CartPulse Analytics.
-- `requirements.txt`: librerías necesarias para ejecutar el dashboard, instaladas también en Streamlit Cloud.
+- `.streamlit/config.toml`: paleta de colores del dashboard (azules).
+- `requirements.txt`: librerías que Streamlit Cloud instala automáticamente. Las líneas con `#` son para la siguiente semana (modelo Gradient Boosting).
 
-### Paleta de colores vigente — CartPulse Analytics
+### Paleta de colores
+| Nombre | Código |
+|---|---|
+| Azul marino | `#0B2545` |
+| Azul profundo | `#13315C` |
+| Azul real | `#1D4E89` |
+| Azul vivo | `#2E86DE` |
+| Azul cielo | `#7FB3E6` |
+| Azul pálido | `#D6E6F7` |
+| Azul hielo | `#EEF4FB` |
 
-| Uso | Color | Código |
-|---|---|---|
-| Fondo principal | Oscuro | `#1A1D24` |
-| Tarjetas y contenedores | Azul grisáceo | `#293545` |
-| Datos, botones y referencias | Azul | `#007BFF` |
-| Alertas y resultados desfavorables | Naranja | `#FFA03A` |
-| Estados favorables y filtros activos | Cian | `#3FD8E0` |
-| Texto secundario | Gris claro | `#B0B7C3` |
-| Texto principal | Blanco | `#FFFFFF` |
 ## Equipo
 
 Arlen Carolina Martínez González · José Gerardo Córdova Molina ·
@@ -166,15 +178,33 @@ python -m unittest discover -s tests -v
 
 El workflow de GitHub Actions es [validacion-datos.yml](.github/workflows/validacion-datos.yml) y se ejecuta en *push* y *pull request* contra `main`.
 
-### Evidencia: el pipeline detectó un dato incorrecto
+### Evidencia obligatoria: corrida fallida por dato roto
 
-El 12 de noviembre de 2026 hicimos una prueba intencional en una rama separada: se escribió `ERROR_DEMO` en la columna numérica `Age` de un registro, GitHub Actions rechazó los datos y la ejecución terminó con error, como debía suceder. La prueba quedó en un *pull request* cerrado **sin integrar el CSV incorrecto en `main`**.
+**ESTADO: PENDIENTE DE EJECUTAR EN GITHUB.** No colocar una liga hasta que exista una corrida real.
 
-- [Prueba fallida real en GitHub Actions](https://github.com/a01666361-beep/proyecto-churn/actions/runs/43277557193).
-- [Última ejecución aprobada en `main`](https://github.com/a01666361-beep/proyecto-churn/actions/runs/43787348010): **23 pruebas superadas**.
-- La rama `main` todavía **no tiene protección obligatoria**: el pipeline informa el fallo, pero hace falta configurar el *status check* requerido para impedir un merge con pruebas fallidas.
+1. Crear una rama temporal a partir de `main`, por ejemplo `demostracion-error-datos`, sin modificar la rama publicada.
+2. En esa rama, modificar intencionalmente **una celda numérica** del CSV, por ejemplo poner `ERROR` en `Credit_Balance` de un registro, y subir el cambio a la rama temporal.
+3. Abrir un *pull request* a `main`; GitHub Actions debe ejecutar `contrato-y-regresion` y fallar indicando que `Credit_Balance` no es numérica.
+4. Copiar aquí el enlace **real** a la ejecución fallida: `PENDIENTE: pegar URL de Actions`.
+5. Restaurar el CSV correcto antes de integrar cambios, correr las pruebas hasta que pasen y cerrar el PR de demostración si ya no se necesita.
+6. Para que realmente se impida fusionar un cambio incorrecto, un administrador debe configurar una protección o *ruleset* de `main` y exigir el *status check* `contrato-y-regresion` (una corrida fallida sin esa protección no impide necesariamente fusionar).
 
-Además, en **Luis > Monitoreo > Demostración de errores** se pueden revisar cuatro ejemplos seguros, realizados sobre copias en memoria, sin alterar el archivo original.
+> **Nota:** una prueba sintética en `tests/test_contrato_datos.py` también reproduce el problema, pero no sustituye el enlace a una ejecución fallida exigido por la rúbrica.
+
 ### Observación de calidad con el CSV actual
 
 Al revisar los 50,000 registros, se identificaron **168 valores fraccionarios `5,6818`** en `Customer_Service_Calls`. El dato es numérico y no viola la regla actual del contrato, pero representa una anomalía semántica porque la variable se describe como conteo de llamadas. La pantalla **Luis > Monitoreo** muestra la observación. Hasta verificar el origen no se asume que sean faltantes ni se redondean.
+
+La implementación local superó 11 pruebas del contrato con la base actual. Esto **no equivale** a una ejecución de GitHub Actions ni sustituye la captura de una corrida fallida real.
+
+## Evidencia: el pipeline detecta datos incorrectos
+
+Prueba realizada el 12 de noviembre de 2026.
+
+- Error introducido: ERROR_DEMO en la columna Age.
+- Resultado: GitHub Actions detectó el dato no numérico.
+- Estado: FAILED (errors=3).
+- Los datos correctos permanecen en la rama del entregable.
+
+[Ejecución fallida de GitHub Actions](https://github.com/a01666361-beep/proyecto-churn/actions/runs/43277557193)
+
