@@ -57,7 +57,7 @@ El menú de arriba está separado en cuatro bloques. Los filtros de la derecha (
 | Análisis por usuario | **Carlos · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | Si se van los clientes valiosos y dónde invertir | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
 | Modelo predictivo | **Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | A qué clientes contactar primero | Scoring (niveles Alto/Medio/Bajo, lista oculta con descarga y explicación por cliente), Segmentos (3 clusters con validación estadística completa) y Modelo y variables |
 | Modelo predictivo | **Segmentos** (`paginas/segmentos.py`) | Andrea y Carlos | Qué tipo de cliente se va más y a quién de cada segmento contactar primero | Churn por segmento contra la selección, activos por nivel de riesgo y lista de contacto por segmento (oculta, con descarga) |
-| Modelo predictivo | **Comparativa y predicción** (`paginas/modelos.py`) | Andrea, Luis y Carlos | Con qué modelo puntuar y si a un cliente se le manda la campaña | Métricas de 5 modelos (árbol, bosque, red neuronal, logística y gradient boosting), curva ROC en test y formulario para predecir con el Gradient Boosting (regla > 50% → «No te vayas») |
+| Modelo predictivo | **Comparativa y predicción** (`paginas/modelos.py`) | Andrea, Luis y Carlos | Con qué modelo puntuar y si a un cliente se le manda la campaña | Métricas de 5 modelos (árbol, bosque, red neuronal, logística y gradient boosting), curva ROC en test y formulario para predecir con el Gradient Boosting con las 11 variables del modelo final (regla > 50% → «No te vayas») |
 | Plan de acción | **Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | Qué hacer primero y cómo medirlo | Tabla de prioridades y, por acción: qué hacer, por qué, activos a quienes aplica y cómo medirlo |
 
 - **Limpiar filtros** restaura la selección y la regla oficial.
@@ -203,8 +203,8 @@ Al revisar los 50,000 registros, se identificaron **168 valores fraccionarios `5
 | Datos | `data/modelos/train_log.csv` (80% limpio, versión A v2) y `data/modelos/test_log.csv` (20% sin imputar), ambos con log(x+1) en 8 variables y coma decimal. Son los mismos que se subieron a SAS |
 | Partición | Dentro del 80%: 70% entrenamiento / 30% validación / 0% test, estratificada, `random_state=0` (igual que Model Studio). El test solo se usa para el score final |
 | Vacíos del test | No se imputan. Árbol, bosque y gradient boosting los manejan solos; la red neuronal y la logística usan, dentro del modelo, la mediana del 70% de entrenamiento |
-| `City` | Rechazada: cada ciudad está en un solo país |
+| Variables | Las 11 del modelo final de SAS: log_Lifetime_Value, Cart_Abandonment_Rate, Customer_Service_Calls, Discount_Usage_Rate, log_Days_Since_Last_Purchase, Age, Email_Open_Rate, log_Total_Purchases, log_Returns_Rate, Pages_Per_Session y City. Las mismas en los cinco modelos y en train y test |
 | Campeón | Gradient Boosting (`HistGradientBoostingClassifier`): mayor AUC y KS en validación |
-| Métricas del campeón (test, corte 0.5) | AUC 0.930 · Accuracy 92.0% · Recall 80.3% · Precisión 91.1% · KS 0.787 |
+| Métricas del campeón (test, corte 0.5) | AUC 0.925 · Accuracy 91.1% · Recall 78.1% · Precisión 89.8% · KS 0.774 (SAS: 91.3% · 78.7% · 90.1%) |
 | Predicción | `src/modelo_gb.py` vuelve a entrenar el mismo modelo al abrir la pantalla (no depende de un `.pkl`). El usuario escribe los datos en escala normal y se aplica log(x+1) antes de predecir |
 | Pruebas | `tests/test_modelo_gb.py`: el modelo del dashboard reproduce el AUC del notebook, la predicción desde escala original es igual a la del modelo y un dato faltante no se convierte en cero |

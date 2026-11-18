@@ -4,6 +4,7 @@ Solo pandas y scikit-learn, sin Streamlit, para poder probarlo fácilmente.
 RESPONSABLE: Arlen Martínez (A01666361)
 
 De dónde sale cada cosa (ver notebooks/Equipo5_Comparacion_Modelos.ipynb):
+- Variables: las 11 del modelo final de SAS (10 numéricas + City); las demás columnas no se usan.
 - Datos: train 80% limpio (versión A v2) y test 20% sin imputar, los dos con log(x+1) en 8 variables
   (data/modelos/train_log.csv y test_log.csv, coma decimal). Son los mismos archivos que se subieron a SAS.
 - El modelo se entrena con el 70% del train (30% validación, 0% test), igual que en SAS Model Studio,
@@ -33,48 +34,41 @@ CAMPANA = "Enviar campaña \"No te vayas\""
 SIN_ACCION = "No hacer nada"
 
 OBJETIVO = "Churned"
-CATEGORICAS = ["Gender", "Country", "Signup_Quarter"]
-RECHAZADAS = ["City"]  # anidada en Country: repite su información
-VARIABLES_LOG = ["log_Membership_Years", "log_Wishlist_Items", "log_Total_Purchases",
-                 "log_Average_Order_Value", "log_Days_Since_Last_Purchase", "log_Returns_Rate",
-                 "log_Product_Reviews_Written", "log_Lifetime_Value"]
+# Las 11 variables del modelo final de SAS (después de quitar 8 y luego 5 por baja importancia).
+NUMERICAS = ["log_Lifetime_Value", "Cart_Abandonment_Rate", "Customer_Service_Calls", "Discount_Usage_Rate",
+             "log_Days_Since_Last_Purchase", "Age", "Email_Open_Rate", "log_Total_Purchases", "log_Returns_Rate",
+             "Pages_Per_Session"]
+CATEGORICAS = ["City"]
+VARIABLES_LOG = [c for c in NUMERICAS if c.startswith("log_")]
 
 # Orden de los modelos en tablas y gráficas (del campeón al de menor AUC en el notebook)
 MODELOS = ["Gradient Boosting", "Bosque aleatorio", "Red neuronal", "Árbol de decisión", "Regresión logística"]
 CAMPEON = "Gradient Boosting"
 
-# Cómo se capturan las variables en la pantalla (escala original, sin log). Enteros = conteos.
+# Cómo se capturan las variables en la pantalla (escala original, sin log), en orden de importancia.
+# (etiqueta, es entero). Las que tienen log en el modelo se transforman solas al predecir.
 CAMPOS = {
-    "Age": ("Edad (años)", True),
-    "Membership_Years": ("Años de membresía", False),
-    "Login_Frequency": ("Frecuencia de inicio de sesión", True),
-    "Session_Duration_Avg": ("Duración promedio de sesión", False),
-    "Pages_Per_Session": ("Páginas por sesión", False),
-    "Cart_Abandonment_Rate": ("Carrito abandonado (%)", False),
-    "Wishlist_Items": ("Artículos en lista de deseos", True),
-    "Total_Purchases": ("Compras totales", True),
-    "Average_Order_Value": ("Valor promedio de pedido (sin moneda documentada)", False),
-    "Days_Since_Last_Purchase": ("Días desde la última compra", True),
-    "Discount_Usage_Rate": ("Uso de descuentos (%)", False),
-    "Returns_Rate": ("Tasa de devoluciones", False),
-    "Email_Open_Rate": ("Apertura de correos (%)", False),
-    "Customer_Service_Calls": ("Llamadas a servicio al cliente", True),
-    "Product_Reviews_Written": ("Reseñas escritas", True),
-    "Social_Media_Engagement_Score": ("Interacción en redes (puntos)", False),
-    "Mobile_App_Usage": ("Uso de la app móvil", False),
-    "Payment_Method_Diversity": ("Métodos de pago distintos", True),
     "Lifetime_Value": ("Valor de vida del cliente (sin moneda documentada)", False),
-    "Credit_Balance": ("Saldo de crédito (sin moneda documentada)", False),
+    "Customer_Service_Calls": ("Llamadas a servicio al cliente", True),
+    "Age": ("Edad (años)", True),
+    "Cart_Abandonment_Rate": ("Carrito abandonado (%)", False),
+    "Discount_Usage_Rate": ("Uso de descuentos (%)", False),
+    "Days_Since_Last_Purchase": ("Días desde la última compra", True),
+    "Email_Open_Rate": ("Apertura de correos (%)", False),
+    "Total_Purchases": ("Compras totales", True),
+    "Returns_Rate": ("Tasa de devoluciones", False),
+    "Pages_Per_Session": ("Páginas por sesión", False),
 }
-NOMBRES_CATEGORICAS = {"Gender": "Género", "Country": "País", "Signup_Quarter": "Trimestre de alta"}
+NOMBRES_CATEGORICAS = {"City": "Ciudad"}
 
 
 def leer(ruta):
     return pd.read_csv(ruta, decimal=",")
 
 
-def numericas(df):
-    return [c for c in df.columns if c not in CATEGORICAS + RECHAZADAS + [OBJETIVO]]
+def numericas(df=None):
+    """Variables numéricas del modelo (las mismas para cualquier archivo: train o test)."""
+    return list(NUMERICAS)
 
 
 def entrenar(train=None):

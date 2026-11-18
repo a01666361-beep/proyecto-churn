@@ -3,18 +3,18 @@
   "corte": 0.5,
   "semilla": 0,
   "metricas_test": {
-    "Accuracy": 0.9204,
-    "Precisión": 0.911233,
-    "Recall": 0.802768,
-    "F1": 0.853569,
-    "AUC": 0.930472,
-    "KS": 0.786695,
-    "Error de clasificación": 0.0796
+    "Accuracy": 0.9111,
+    "Precisión": 0.897813,
+    "Recall": 0.781315,
+    "F1": 0.835523,
+    "AUC": 0.925121,
+    "KS": 0.773588,
+    "Error de clasificación": 0.0889
   },
   "matriz_test": {
-    "VN": 6884,
-    "FP": 226,
-    "FN": 570,
-    "VP": 2320
+    "VN": 6853,
+    "FP": 257,
+    "FN": 632,
+    "VP": 2258
   }
 }

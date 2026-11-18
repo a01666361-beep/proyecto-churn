@@ -28,7 +28,8 @@ COLOR_MODELO = {"Gradient Boosting": AZUL, "Bosque aleatorio": CIAN, "Red neuron
 METRICAS = ["Accuracy", "Precisión", "Recall", "F1", "AUC", "KS"]
 
 ayuda.titulo_pantalla("Comparativa de modelos", "modelos",
-                      "Cinco modelos de clasificación entrenados con el mismo 70% del train (limpio y con logaritmos), "
+                      "Cinco modelos de clasificación con las 11 variables del modelo final, entrenados con el mismo 70% del "
+                      "train (limpio y con logaritmos), "
                       "elegidos con el 30% de validación y calificados con el test (20%, sin imputar)")
 
 resultados = G.comparativa()
@@ -118,7 +119,7 @@ with predecir:
     modelo, columnas_num, (rangos, opciones, moda) = modelo_campeon()
     ayuda.titulo_grafica(
         "Probabilidad de abandono de un cliente con el Gradient Boosting",
-        "Escribe los datos del cliente en su escala normal; el dashboard saca log(x+1) de las 8 variables "
+        "Escribe los datos del cliente en su escala normal; el dashboard saca log(x+1) de las variables "
         "transformadas, igual que en train y test, y el modelo calcula la probabilidad.",
         f"Si la probabilidad es mayor a {G.CORTE:.0%}, la regla de decisión manda la campaña «No te vayas».",
         "Decidir si a un cliente concreto se le envía la campaña de retención.", nivel="####")
@@ -126,22 +127,28 @@ with predecir:
                "el modelo maneja el vacío sin rellenarlo, igual que con el test.")
 
     with st.form("cliente"):
+        st.markdown(f"**Las {len(G.CAMPOS) + len(G.CATEGORICAS)} variables del modelo final**, de la más a la menos importante:")
         datos = {}
-        cols = st.columns(3)
-        for i, c in enumerate(G.CATEGORICAS):
-            datos[c] = cols[i].selectbox(G.NOMBRES_CATEGORICAS[c], opciones[c], index=opciones[c].index(moda[c]))
-        cols = st.columns(4)
-        for i, (campo, (etiqueta, entero)) in enumerate(G.CAMPOS.items()):
-            r = rangos[campo]
-            with cols[i % 4]:
-                if entero:
-                    valor = st.number_input(etiqueta, min_value=0, value=int(round(r["mediana"])), step=1,
-                                            help=f"En train va de {r['min']:,.0f} a {r['max']:,.0f}.")
-                else:
-                    valor = st.number_input(etiqueta, min_value=0.0, value=round(r["mediana"], 2), step=0.1,
-                                            format="%.2f", help=f"En train va de {r['min']:,.2f} a {r['max']:,.2f}.")
-                sin_dato = st.checkbox("Sin dato", key=f"sd_{campo}")
-            datos[campo] = None if sin_dato else float(valor)
+        lista, _ = st.columns([3, 2])  # la lista ocupa solo parte del ancho para que se lea mejor
+        with lista:
+            for n, (campo, (etiqueta, entero)) in enumerate(G.CAMPOS.items(), 1):
+                r = rangos[campo]
+                log = "  ·  se le aplica log(x+1)" if f"log_{campo}" in G.VARIABLES_LOG else ""
+                valor_col, dato_col = st.columns([4, 1], vertical_alignment="bottom")
+                with valor_col:
+                    if entero:
+                        valor = st.number_input(f"{n}. {etiqueta}", min_value=0, value=int(round(r["mediana"])), step=1,
+                                                help=f"En train va de {r['min']:,.0f} a {r['max']:,.0f}{log}.")
+                    else:
+                        valor = st.number_input(f"{n}. {etiqueta}", min_value=0.0, value=round(r["mediana"], 2),
+                                                step=0.1, format="%.2f",
+                                                help=f"En train va de {r['min']:,.2f} a {r['max']:,.2f}{log}.")
+                with dato_col:
+                    sin_dato = st.checkbox("Sin dato", key=f"sd_{campo}")
+                datos[campo] = None if sin_dato else float(valor)
+            for c in G.CATEGORICAS:
+                n += 1
+                datos[c] = st.selectbox(f"{n}. {G.NOMBRES_CATEGORICAS[c]}", opciones[c], index=opciones[c].index(moda[c]))
         enviado = st.form_submit_button("Calcular probabilidad", type="primary")
 
     if enviado:

@@ -25,6 +25,12 @@ class ModeloGB(unittest.TestCase):
         for c in G.VARIABLES_LOG:
             self.assertIn(c, self.train)
 
+    def test_usa_solo_las_11_variables_del_modelo_final(self):
+        entradas = list(self.modelo.feature_names_in_)
+        self.assertEqual(len(entradas), 11)
+        self.assertEqual(set(entradas), set(G.NUMERICAS) | {"City"})
+        self.assertEqual(len(G.CAMPOS) + len(G.CATEGORICAS), 11)  # el formulario pide las mismas
+
     def test_reproduce_las_metricas_del_notebook(self):
         resumen = json.loads((G.CARPETA / "resumen_campeon.json").read_text(encoding="utf-8"))
         prob = self.modelo.predict_proba(self.test[self.num + G.CATEGORICAS])[:, 1]
