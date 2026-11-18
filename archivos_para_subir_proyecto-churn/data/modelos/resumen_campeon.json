@@ -1,0 +1,20 @@
+{
+  "campeon": "Gradient Boosting",
+  "corte": 0.5,
+  "semilla": 0,
+  "metricas_test": {
+    "Accuracy": 0.9204,
+    "Precisión": 0.911233,
+    "Recall": 0.802768,
+    "F1": 0.853569,
+    "AUC": 0.930472,
+    "KS": 0.786695,
+    "Error de clasificación": 0.0796
+  },
+  "matriz_test": {
+    "VN": 6884,
+    "FP": 226,
+    "FN": 570,
+    "VP": 2320
+  }
+}
