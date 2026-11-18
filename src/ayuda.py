@@ -65,6 +65,15 @@ GUIAS = {
         "indicadores": "Churn histórico: calculado del CSV. Segmento y nivel de riesgo: resultado del modelo, no son "
                        "datos observados.",
     },
+    "modelos": {
+        "para": "Comparar los cinco modelos de clasificación y calcular la probabilidad de abandono de un cliente con el campeón.",
+        "pasos": ["En **Comparativa** revisa las métricas de cada modelo en test (o en validación).",
+                  "En **Curva ROC** compara qué tan bien separa cada modelo a los que se van de los que se quedan.",
+                  "En **Predecir un cliente** escribe sus datos en escala normal y pulsa **Calcular probabilidad**."],
+        "indicadores": "Las métricas salen del notebook de comparación (train 80% limpio + log, test 20% sin imputar) y "
+                       "no cambian con los filtros. La probabilidad es una predicción del Gradient Boosting; "
+                       "si es mayor a 50% se manda la campaña «No te vayas».",
+    },
     "recomendaciones": {
         "para": "Decidir qué acciones tomar primero y cómo medir si funcionaron.",
         "pasos": ["La tabla de prioridades ordena las acciones; la 1 es por donde conviene empezar.",
