@@ -199,12 +199,12 @@ Al revisar los 50,000 registros, se identificaron **168 valores fraccionarios `5
 
 | Elemento | Decisión |
 |---|---|
-| Notebook | `notebooks/Equipo5_Comparacion_Modelos.ipynb`: árbol de decisión, bosque aleatorio, red neuronal, regresión logística y gradient boosting |
-| Datos | `data/modelos/train_log.csv` (80% limpio, versión A v2) y `data/modelos/test_log.csv` (20% sin imputar), ambos con log(x+1) en 8 variables y coma decimal. Son los mismos que se subieron a SAS |
-| Partición | Dentro del 80%: 70% entrenamiento / 30% validación / 0% test, estratificada, `random_state=0` (igual que Model Studio). El test solo se usa para el score final |
-| Vacíos del test | No se imputan. Árbol, bosque y gradient boosting los manejan solos; la red neuronal y la logística usan, dentro del modelo, la mediana del 70% de entrenamiento |
+| Notebook | `notebooks/Equipo5_Limpieza_y_Modelos_Churn.ipynb`: del crudo de 50,000 clientes a la limpieza variable por variable, logaritmos y comparación de árbol de decisión, bosque aleatorio, red neuronal, regresión logística y gradient boosting |
+| Datos | `data/modelos/train_log.csv` (80%) y `data/modelos/test_log.csv` (20%), salidas del notebook. Primero se divide 80/20 (estratificado, `random_state=42`, la misma división que se usó en SAS) y después se limpia: reglas, umbrales y medianas se calculan solo con train y se aplican igual a test. Ambos con log(x+1) en 8 variables y coma decimal |
+| Partición | Los modelos se entrenan con todo el 80% y se validan con validación cruzada de 10 grupos dentro del train (`KFold`, como en clase). En la tabla, «Validación» es el promedio de esos 10 grupos. El test solo se usa para el score final |
+| Vacíos del test | Se rellenan con las medianas del train (no se calcula nada con el test, así que no hay fuga de información). Cambio del 23 de noviembre: antes el test no se imputaba; ahora los cinco modelos reciben la misma tabla completa. `tests/test_modelo_gb.py` verifica que el test no tenga vacíos |
 | Variables | Las 11 del modelo final de SAS: log_Lifetime_Value, Cart_Abandonment_Rate, Customer_Service_Calls, Discount_Usage_Rate, log_Days_Since_Last_Purchase, Age, Email_Open_Rate, log_Total_Purchases, log_Returns_Rate, Pages_Per_Session y City. Las mismas en los cinco modelos y en train y test |
-| Campeón | Gradient Boosting (`HistGradientBoostingClassifier`): mayor AUC y KS en validación |
-| Métricas del campeón (test, corte 0.5) | AUC 0.925 · Accuracy 91.1% · Recall 78.1% · Precisión 89.8% · KS 0.774 (SAS: 91.3% · 78.7% · 90.1%) |
-| Predicción | `src/modelo_gb.py` vuelve a entrenar el mismo modelo al abrir la pantalla (no depende de un `.pkl`). El usuario escribe los datos en escala normal y se aplica log(x+1) antes de predecir |
+| Campeón | Gradient Boosting (`HistGradientBoostingClassifier`): mayor accuracy, AUC y KS en validación cruzada |
+| Métricas del campeón (test, corte 0.5) | AUC 0.924 · Accuracy 91.2% · Recall 77.8% · Precisión 90.4% · KS 0.771. En SAS (validación): Accuracy 91.7% · AUC 0.923 · KS 0.773. El bosque aleatorio empata en AUC en test (0.924), pero queda abajo en accuracy, recall, F1 y KS |
+| Predicción | `src/modelo_gb.py` vuelve a entrenar el mismo modelo con todo el train al abrir la pantalla (no depende de un `.pkl`) y reproduce exactamente el AUC del notebook. El usuario escribe los datos en escala normal y se aplica log(x+1) antes de predecir |
 | Pruebas | `tests/test_modelo_gb.py`: el modelo del dashboard reproduce el AUC del notebook, la predicción desde escala original es igual a la del modelo y un dato faltante no se convierte en cero |

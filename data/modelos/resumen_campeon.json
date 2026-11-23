@@ -1,20 +1,20 @@
 {
   "campeon": "Gradient Boosting",
   "corte": 0.5,
-  "semilla": 0,
+  "semilla": 42,
   "metricas_test": {
-    "Accuracy": 0.9111,
-    "Precisión": 0.897813,
-    "Recall": 0.781315,
-    "F1": 0.835523,
-    "AUC": 0.925121,
-    "KS": 0.773588,
-    "Error de clasificación": 0.0889
+    "Accuracy": 0.9119,
+    "Precisión": 0.904225,
+    "Recall": 0.777509,
+    "F1": 0.836093,
+    "AUC": 0.924418,
+    "KS": 0.771257,
+    "Error de clasificación": 0.0881
   },
   "matriz_test": {
-    "VN": 6853,
-    "FP": 257,
-    "FN": 632,
-    "VP": 2258
+    "VN": 6872,
+    "FP": 238,
+    "FN": 643,
+    "VP": 2247
   }
 }

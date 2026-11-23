@@ -4,8 +4,8 @@ Decisión: con qué modelo puntuar a los clientes y si a un cliente concreto se 
 RESPONSABLE: Arlen Martínez (A01666361)
 
 Origen de cada cifra (no se mezclan):
-- Métricas, curva ROC e importancia: calculadas en notebooks/Equipo5_Comparacion_Modelos.ipynb con el
-  train 80% limpio + log y el test 20% sin imputar (data/modelos/).
+- Métricas, curva ROC e importancia: calculadas en notebooks/Equipo5_Limpieza_y_Modelos_Churn.ipynb con el
+  train 80% limpio + log y el test 20% con las mismas reglas y medianas del train + log (data/modelos/).
 - Probabilidad de un cliente: predicción del Gradient Boosting, no es un dato observado.
 Esta pantalla no usa los filtros de la derecha: los modelos se evalúan con el test completo.
 """
@@ -28,9 +28,9 @@ COLOR_MODELO = {"Gradient Boosting": AZUL, "Bosque aleatorio": CIAN, "Red neuron
 METRICAS = ["Accuracy", "Precisión", "Recall", "F1", "AUC", "KS"]
 
 ayuda.titulo_pantalla("Comparativa de modelos", "modelos",
-                      "Cinco modelos de clasificación con las 11 variables del modelo final, entrenados con el mismo 70% del "
-                      "train (limpio y con logaritmos), "
-                      "elegidos con el 30% de validación y calificados con el test (20%, sin imputar)")
+                      "Cinco modelos de clasificación con las 11 variables del modelo final, entrenados con el train "
+                      "(80%, limpio y con logaritmos), elegidos con validación cruzada de 10 grupos y calificados con "
+                      "el test (20%, con las mismas reglas de limpieza y medianas del train)")
 
 resultados = G.comparativa()
 test = resultados[resultados["Partición"] == "Test"].set_index("Modelo").loc[G.MODELOS]
@@ -42,7 +42,7 @@ comparar, curva, predecir = st.tabs(["Comparativa", "Curva ROC", "Predecir un cl
 # ================================================================== Comparativa
 with comparar:
     k1, k2, k3, k4 = st.columns(4)
-    k1.metric("Modelo campeón", G.CAMPEON, help="Mayor AUC y KS en validación, igual que en SAS Model Studio.")
+    k1.metric("Modelo campeón", G.CAMPEON, help="Mayor AUC y KS en validación cruzada, igual que en SAS Model Studio.")
     k2.metric("AUC en test", f"{campeon['AUC']:.3f}",
               f"{campeon['AUC'] - test.drop(G.CAMPEON)['AUC'].max():+.3f} vs. el segundo", delta_color="normal")
     k3.metric("Accuracy en test", f"{campeon['Accuracy']:.1%}", help="Línea base (decir siempre «no se va»): 71.1%.")
@@ -66,7 +66,7 @@ with comparar:
 
     st.markdown("#### Tabla de métricas")
     particion = st.radio("Partición", ["Test", "Validación"], horizontal=True,
-                         help="El campeón se elige con validación; el test es el score final.")
+                         help="Validación: promedio de la validación cruzada de 10 grupos dentro del train. El campeón se elige con ella; el test es el score final.")
     tabla = (test if particion == "Test" else validacion)[METRICAS + ["Error de clasificación"]].reset_index()
     st.dataframe(tabla, hide_index=True, width="stretch",
                  column_config={c: st.column_config.NumberColumn(format="%.3f")
@@ -80,7 +80,7 @@ with comparar:
         fig = go.Figure(go.Bar(x=imp["Baja del AUC"], y=imp["Variable"], orientation="h", marker_color=AZUL,
                                hovertemplate="%{y}: el AUC baja %{x:.3f}<extra></extra>"))
         fig.update_layout(height=340, margin=dict(l=10, r=10, t=10, b=10),
-                          xaxis_title="Cuánto baja el AUC si se revuelve la variable (validación)")
+                          xaxis_title="Cuánto baja el AUC si se revuelve la variable (test)")
         st.plotly_chart(fig, width="stretch")
         st.caption("Importancia por permutación. Las variables log_ están en escala log(x+1).")
 
@@ -124,7 +124,7 @@ with predecir:
         f"Si la probabilidad es mayor a {G.CORTE:.0%}, la regla de decisión manda la campaña «No te vayas».",
         "Decidir si a un cliente concreto se le envía la campaña de retención.", nivel="####")
     st.caption("Los valores iniciales son la mediana de train (un cliente típico). Marca «Sin dato» si no lo conoces: "
-               "el modelo maneja el vacío sin rellenarlo, igual que con el test.")
+               "el modelo manda el vacío a la rama con más clientes, sin rellenarlo.")
 
     with st.form("cliente"):
         st.markdown(f"**Las {len(G.CAMPOS) + len(G.CATEGORICAS)} variables del modelo final**, de la más a la menos importante:")

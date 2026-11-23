@@ -1,12 +1,12 @@
 Variable,Baja del AUC
-log_Lifetime_Value,0.174549
-Customer_Service_Calls,0.132995
-Age,0.065569
-Cart_Abandonment_Rate,0.054012
-Discount_Usage_Rate,0.050563
-log_Days_Since_Last_Purchase,0.025852
-Email_Open_Rate,0.014339
-log_Total_Purchases,0.010335
-log_Returns_Rate,0.00512
-Pages_Per_Session,0.003037
-City,-0.000186
+log_Lifetime_Value,0.175066
+Customer_Service_Calls,0.14432
+Age,0.062392
+Cart_Abandonment_Rate,0.05265
+Discount_Usage_Rate,0.042622
+log_Days_Since_Last_Purchase,0.027667
+Email_Open_Rate,0.01521
+log_Total_Purchases,0.006876
+log_Returns_Rate,0.004935
+Pages_Per_Session,0.004439
+City,0.000955

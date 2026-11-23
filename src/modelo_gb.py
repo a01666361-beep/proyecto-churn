@@ -3,13 +3,16 @@ Modelo campeón (Gradient Boosting) y comparativa de modelos de clasificación.
 Solo pandas y scikit-learn, sin Streamlit, para poder probarlo fácilmente.
 RESPONSABLE: Arlen Martínez (A01666361)
 
-De dónde sale cada cosa (ver notebooks/Equipo5_Comparacion_Modelos.ipynb):
+De dónde sale cada cosa (ver notebooks/Equipo5_Limpieza_y_Modelos_Churn.ipynb):
 - Variables: las 11 del modelo final de SAS (10 numéricas + City); las demás columnas no se usan.
-- Datos: train 80% limpio (versión A v2) y test 20% sin imputar, los dos con log(x+1) en 8 variables
-  (data/modelos/train_log.csv y test_log.csv, coma decimal). Son los mismos archivos que se subieron a SAS.
-- El modelo se entrena con el 70% del train (30% validación, 0% test), igual que en SAS Model Studio,
-  con los mismos parámetros y la misma semilla que el notebook. Se entrena al abrir el dashboard (unos
-  segundos) para no depender de la versión de scikit-learn con la que se hubiera guardado un .pkl.
+- Datos: el notebook parte del crudo de 50,000 clientes, divide 80/20 (estratificado, semilla 42) y limpia.
+  Las reglas y las medianas se calculan solo con train y se aplican igual a test. Los dos llevan log(x+1)
+  en 8 variables (data/modelos/train_log.csv y test_log.csv, coma decimal).
+- El modelo se entrena con todo el train (80%), con los mismos parámetros y la misma semilla que el
+  notebook; la validación se hizo con validación cruzada de 10 grupos. Se entrena al abrir el dashboard
+  (unos segundos) para no depender de la versión de scikit-learn con la que se hubiera guardado un .pkl.
+  En el notebook las variables se estandarizan; al Gradient Boosting no le cambia nada (los árboles no
+  dependen de la escala), por eso aquí no se estandariza.
 - comparativa_modelos.csv, roc_modelos.csv e importancia_gb.csv son salidas del notebook: métricas de los
   cinco modelos (árbol, bosque, red neuronal, regresión logística y gradient boosting).
 - Regla de decisión (Intelligent Decisioning): probabilidad de churn > 0.5 → campaña "No te vayas".
@@ -18,7 +21,6 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
@@ -28,7 +30,7 @@ CARPETA = CARPETA_PROYECTO / "data" / "modelos"
 RUTA_TRAIN = CARPETA / "train_log.csv"
 RUTA_TEST = CARPETA / "test_log.csv"
 
-SEMILLA = 0
+SEMILLA = 42
 CORTE = 0.5
 CAMPANA = "Enviar campaña \"No te vayas\""
 SIN_ACCION = "No hacer nada"
@@ -72,19 +74,16 @@ def numericas(df=None):
 
 
 def entrenar(train=None):
-    """Gradient Boosting igual al del notebook: mismo 70/30, mismos parámetros y misma semilla."""
+    """Gradient Boosting igual al del notebook: todo el train, mismos parámetros y misma semilla."""
     train = leer(RUTA_TRAIN) if train is None else train
     columnas = numericas(train) + CATEGORICAS
-    X_ent, X_val, y_ent, y_val = train_test_split(train[columnas], train[OBJETIVO], test_size=0.30,
-                                                  stratify=train[OBJETIVO], random_state=SEMILLA)
     modelo = Pipeline([
         ("prep", ColumnTransformer([
             ("num", "passthrough", numericas(train)),
             ("cat", OneHotEncoder(handle_unknown="ignore", sparse_output=False), CATEGORICAS)])),
-        ("modelo", HistGradientBoostingClassifier(max_iter=300, learning_rate=0.05, max_leaf_nodes=31,
-                                                  early_stopping=True, random_state=SEMILLA)),
+        ("modelo", HistGradientBoostingClassifier(max_iter=300, learning_rate=0.05, random_state=SEMILLA)),
     ])
-    modelo.fit(X_ent, y_ent)
+    modelo.fit(train[columnas], train[OBJETIVO])
     return modelo
 
 
@@ -104,7 +103,8 @@ def opciones_y_rangos(train):
 def preparar_cliente(datos, columnas_num):
     """Diccionario en escala original → fila con las columnas que espera el modelo (log(x+1) en 8 variables).
 
-    Un dato que falta (None) se queda vacío: el Gradient Boosting sabe a qué rama mandarlo y no se rellena.
+    Un dato que falta (None) se queda vacío y no se rellena: el Gradient Boosting lo manda a la rama con más
+    clientes de entrenamiento.
     """
     fila = {}
     for col in columnas_num + CATEGORICAS:
@@ -125,7 +125,7 @@ def predecir(modelo, datos, columnas_num, corte=CORTE):
 
 
 def comparativa():
-    """Métricas de los cinco modelos en validación y test (salida del notebook)."""
+    """Métricas de los cinco modelos en validación cruzada (10 grupos) y test (salida del notebook)."""
     return pd.read_csv(CARPETA / "comparativa_modelos.csv")
 
 
@@ -135,5 +135,5 @@ def roc():
 
 
 def importancia():
-    """Importancia por permutación del Gradient Boosting en validación (salida del notebook)."""
+    """Importancia por permutación del Gradient Boosting en test (salida del notebook)."""
     return pd.read_csv(CARPETA / "importancia_gb.csv")
