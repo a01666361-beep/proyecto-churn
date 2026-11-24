@@ -5,7 +5,7 @@ RESPONSABLE: Arlen Martínez (A01666361)
 
 Origen de cada cifra (no se mezclan):
 - Métricas, curva ROC e importancia: calculadas en notebooks/Equipo5_Limpieza_y_Modelos_Churn.ipynb con el
-  train 80% limpio + log y el test 20% con las mismas reglas y medianas del train + log (data/modelos/).
+  train 80% limpio + log y el test 20% sin limpiar ni imputar, solo con log (data/modelos/).
 - Probabilidad de un cliente: predicción del Gradient Boosting, no es un dato observado.
 Esta pantalla no usa los filtros de la derecha: los modelos se evalúan con el test completo.
 """
@@ -30,7 +30,7 @@ METRICAS = ["Accuracy", "Precisión", "Recall", "F1", "AUC", "KS"]
 ayuda.titulo_pantalla("Comparativa de modelos", "modelos",
                       "Cinco modelos de clasificación con las 11 variables del modelo final, entrenados con el train "
                       "(80%, limpio y con logaritmos), elegidos con validación cruzada de 10 grupos y calificados con "
-                      "el test (20%, con las mismas reglas de limpieza y medianas del train)")
+                      "el test (20%, sin limpiar ni imputar, solo con logaritmos)")
 
 resultados = G.comparativa()
 test = resultados[resultados["Partición"] == "Test"].set_index("Modelo").loc[G.MODELOS]

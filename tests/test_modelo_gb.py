@@ -20,7 +20,7 @@ class ModeloGB(unittest.TestCase):
     def test_reglas_de_los_datos(self):
         self.assertEqual(list(self.train.columns), list(self.test.columns))
         self.assertEqual(int(self.train.isna().sum().sum()), 0)        # train limpio
-        self.assertEqual(int(self.test.isna().sum().sum()), 0)          # test con las medianas del train
+        self.assertGreater(int(self.test.isna().sum().sum()), 0)        # test sin imputar (solo log)
         self.assertEqual((len(self.train), len(self.test)), (40_000, 10_000))
         for c in G.VARIABLES_LOG:
             self.assertIn(c, self.train)

@@ -5,14 +5,15 @@ RESPONSABLE: Arlen Martínez (A01666361)
 
 De dónde sale cada cosa (ver notebooks/Equipo5_Limpieza_y_Modelos_Churn.ipynb):
 - Variables: las 11 del modelo final de SAS (10 numéricas + City); las demás columnas no se usan.
-- Datos: el notebook parte del crudo de 50,000 clientes, divide 80/20 (estratificado, semilla 42) y limpia.
-  Las reglas y las medianas se calculan solo con train y se aplican igual a test. Los dos llevan log(x+1)
-  en 8 variables (data/modelos/train_log.csv y test_log.csv, coma decimal).
+- Datos: el notebook parte del crudo de 50,000 clientes, divide 80/20 (estratificado, semilla 42) y limpia
+  solo el train (reglas y medianas calculadas con train). El test no se limpia ni se imputa, como pidió el
+  profesor: solo se le aplica el mismo log(x+1) en 8 variables (data/modelos/train_log.csv y test_log.csv,
+  coma decimal). El Gradient Boosting recibe los vacíos del test sin rellenarlos.
 - El modelo se entrena con todo el train (80%), con los mismos parámetros y la misma semilla que el
   notebook; la validación se hizo con validación cruzada de 10 grupos. Se entrena al abrir el dashboard
   (unos segundos) para no depender de la versión de scikit-learn con la que se hubiera guardado un .pkl.
   En el notebook las variables se estandarizan; al Gradient Boosting no le cambia nada (los árboles no
-  dependen de la escala), por eso aquí no se estandariza.
+  dependen de la escala), por eso aquí no se estandariza y reproduce exactamente el AUC del notebook.
 - comparativa_modelos.csv, roc_modelos.csv e importancia_gb.csv son salidas del notebook: métricas de los
   cinco modelos (árbol, bosque, red neuronal, regresión logística y gradient boosting).
 - Regla de decisión (Intelligent Decisioning): probabilidad de churn > 0.5 → campaña "No te vayas".

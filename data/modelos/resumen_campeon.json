@@ -4,17 +4,17 @@
   "semilla": 42,
   "metricas_test": {
     "Accuracy": 0.9119,
-    "Precisión": 0.904225,
-    "Recall": 0.777509,
-    "F1": 0.836093,
-    "AUC": 0.924418,
-    "KS": 0.771257,
+    "Precisión": 0.9125,
+    "Recall": 0.7689,
+    "F1": 0.8346,
+    "AUC": 0.9243,
+    "KS": 0.7734,
     "Error de clasificación": 0.0881
   },
   "matriz_test": {
-    "VN": 6872,
-    "FP": 238,
-    "FN": 643,
-    "VP": 2247
+    "VN": 6897,
+    "FP": 213,
+    "FN": 668,
+    "VP": 2222
   }
 }
