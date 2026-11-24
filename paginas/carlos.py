@@ -40,7 +40,7 @@ with izquierda:
         ayuda.titulo_grafica(
             f"Abandono por cuartil de valor: Q4 {q4['tasa']:.1%} vs. negocio {tasa_global:.1%}",
             "La tasa de abandono de cada cuartil de Lifetime_Value, de menor (Q1) a mayor valor (Q4).",
-            "Barras rojas: el cuartil abandona más que el negocio; verdes: menos. La línea punteada es el churn global.",
+            "Barras naranjas: el cuartil abandona más que el negocio; cian: menos. La línea punteada es el churn global.",
             "Si hay que proteger primero a los clientes de mayor valor.")
         barras = go.Figure(go.Bar(
             x=cuartiles["cuartil"].astype(str), y=cuartiles["tasa"] * 100,

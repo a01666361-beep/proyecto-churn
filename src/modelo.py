@@ -174,14 +174,6 @@ def nivel_riesgo(prob):
     return np.select([prob >= UMBRAL_ALTO, prob >= UMBRAL_MEDIO], ["Alto", "Medio"], "Bajo")
 
 
-def puntuar(df, modelo):
-    """Probabilidad de churn y nivel de riesgo para cada cliente de la base."""
-    salida = df.copy()
-    salida["Probabilidad"] = modelo.predict_proba(_x(df))[:, 1]
-    salida["Nivel_Riesgo"] = nivel_riesgo(salida["Probabilidad"])
-    return salida
-
-
 def tabla_scoring(df_puntuado, solo_activos=True, niveles=None):
     """Tabla de clientes ordenada por probabilidad (de mayor a menor), lista para mostrar y descargar."""
     t = df_puntuado
@@ -262,3 +254,97 @@ def perfil_segmentos(df_puntuado):
     perfil = perfil.loc[orden].reset_index()
     perfil["Descripción"] = perfil["Segmento"].map(DESCRIPCION_SEGMENTO)
     return perfil
+
+
+# ------------------------------------------------------------------ Modelo campeón para el scoring
+# Cambio del 24-nov: el scoring, los niveles de riesgo, las alertas de Luis y la explicación por cliente usan
+# el Gradient Boosting (modelo campeón de src/modelo_gb.py, AUC 0.924 en test) en lugar de la regresión
+# logística (AUC 0.770 en test). La regresión logística se conserva en este archivo como referencia
+# interpretable (entrenar_modelo, coeficientes y explicar_cliente) y para las pruebas existentes.
+NOMBRES_CAMPEON = {"City": "Ciudad", "Pages_Per_Session": "Páginas por sesión", "Age": "Edad"}
+
+
+class ModeloCampeon:
+    """Envuelve el Gradient Boosting para puntuar la base del dashboard.
+
+    La base del dashboard guarda Lifetime_Value, Total_Purchases, Days_Since_Last_Purchase y Returns_Rate
+    en log(1 + x) (ver contrato de datos), que es justo lo que el modelo espera en sus columnas log_*.
+    """
+    usa_base_completa = True
+
+    def __init__(self, pipeline, train):
+        from src import modelo_gb as G
+        self.G = G
+        self.pipeline = pipeline
+        self.columnas = G.NUMERICAS + G.CATEGORICAS
+        # Valor típico de cada variable (mediana o moda del train) para explicar a cada cliente
+        self.tipico = {c: float(train[c].median()) for c in G.NUMERICAS}
+        self.tipico.update({c: train[c].mode()[0] for c in G.CATEGORICAS})
+
+    def caracteristicas(self, df):
+        datos = {c: (df[c[4:]] if c.startswith("log_") else df[c]) for c in self.G.NUMERICAS}
+        datos.update({c: df[c] for c in self.G.CATEGORICAS})
+        return pd.DataFrame(datos, index=df.index)[self.columnas]
+
+    def predict_proba(self, df):
+        return self.pipeline.predict_proba(self.caracteristicas(df))
+
+
+def entrenar_campeon():
+    """Entrena el Gradient Boosting igual que el notebook y regresa sus métricas de test (salida del notebook)."""
+    import json
+
+    from src import modelo_gb as G
+    train = G.leer(G.RUTA_TRAIN)
+    campeon = ModeloCampeon(G.entrenar(train), train)
+    resumen = json.loads((G.CARPETA / "resumen_campeon.json").read_text(encoding="utf-8"))
+    matriz = resumen["matriz_test"]
+    n_test = sum(matriz.values())
+    metricas = dict(resumen["metricas_test"])
+    metricas["Accuracy línea base"] = (matriz["VN"] + matriz["FP"]) / n_test
+    return {"modelo": campeon, "metricas": metricas, "matriz": matriz,
+            "n_train": len(train), "n_test": n_test, "corte": resumen["corte"]}
+
+
+def puntuar(df, modelo):
+    """Probabilidad de churn y nivel de riesgo para cada cliente de la base (cualquiera de los dos modelos)."""
+    salida = df.copy()
+    datos = df if getattr(modelo, "usa_base_completa", False) else _x(df)
+    salida["Probabilidad"] = modelo.predict_proba(datos)[:, 1]
+    salida["Nivel_Riesgo"] = nivel_riesgo(salida["Probabilidad"])
+    return salida
+
+
+def explicar_cliente_campeon(campeon, df, cliente_id, n=5):
+    """Explica la probabilidad del Gradient Boosting para un cliente.
+
+    Para cada variable del modelo se cambia el valor del cliente por el valor típico (mediana del train; la moda
+    en Ciudad) y se mide cuánto cambia su probabilidad: aporte = probabilidad real − probabilidad con el valor típico,
+    en puntos porcentuales. Positivo: esa variable le sube el riesgo. No es causalidad: describe cómo decide el modelo.
+    """
+    fila = df[df["Customer_ID"] == cliente_id]
+    if fila.empty:
+        raise KeyError(f"No existe el cliente {cliente_id}")
+    x = campeon.caracteristicas(fila.head(1))
+    prob = float(campeon.pipeline.predict_proba(x)[:, 1][0])
+    variantes = []
+    for col in campeon.columnas:
+        v = x.copy()
+        v[col] = campeon.tipico[col]
+        variantes.append(v)
+    probs = campeon.pipeline.predict_proba(pd.concat(variantes, ignore_index=True))[:, 1]
+    filas = []
+    for col, p in zip(campeon.columnas, probs):
+        base = col[4:] if col.startswith("log_") else col
+        valor = x.iloc[0][col]
+        if col.startswith("log_"):
+            valor = round(float(np.expm1(valor)), 1)
+        elif col not in campeon.G.CATEGORICAS:
+            valor = round(float(valor), 1)
+        filas.append({"Variable": NOMBRES_CAMPEON.get(base, NOMBRES.get(base, base)), "Valor del cliente": valor,
+                      "Aporte": (prob - p) * 100})
+    tabla = pd.DataFrame(filas)
+    tabla["Efecto"] = np.where(tabla["Aporte"] > 0, "Sube el riesgo", "Baja el riesgo")
+    tabla = tabla.reindex(tabla["Aporte"].abs().sort_values(ascending=False).index).head(n)
+    promedio = float(campeon.predict_proba(df)[:, 1].mean())
+    return tabla.reset_index(drop=True), {"probabilidad": prob, "probabilidad_promedio": promedio}

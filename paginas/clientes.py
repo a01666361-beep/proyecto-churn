@@ -12,6 +12,7 @@ from scipy.cluster import hierarchy as sch
 from src import analisis_clusters as A
 from src import ayuda
 from src import modelo as M
+from src import modelo_gb as G
 from src.config import AZUL, AZUL_CLARO, AZUL_PALIDO, AZUL_TEXTO, GRIS, ROJO, VERDE
 from src.contexto import contexto, obtener_datos
 from src.puntuacion import modelo_y_puntuacion as preparar_modelo  # caché compartida (Víctor)
@@ -42,7 +43,7 @@ resultado, puntuado_total = preparar_modelo()
 puntuado = puntuado_total.loc[c.df_filtrado.index]  # respeta los filtros de país, género y edad
 
 ayuda.titulo_pantalla("Clientes prioritarios", "clientes",
-                      "Probabilidad de abandono de cada cliente según el modelo de regresión logística · "
+                      "Probabilidad de abandono de cada cliente según el Gradient Boosting (modelo campeón) · "
                       f"{len(puntuado):,} de {len(puntuado_total):,} clientes en el grupo seleccionado")
 
 if puntuado.empty:
@@ -95,7 +96,7 @@ with scoring:
     ayuda.titulo_grafica(
         "Explicación por cliente: las 5 variables que más pesan en su riesgo",
         "Para el cliente elegido, qué variables suben o bajan su probabilidad de abandono frente al cliente promedio.",
-        "Naranja sube el riesgo, cian lo baja. El largo de la barra es el aporte exacto en la regresión logística.",
+        "Naranja sube el riesgo, cian lo baja. El largo de la barra es cuánto cambia su probabilidad si esa variable tuviera el valor típico.",
         "Qué mensaje o acción usar con ese cliente al contactarlo.", nivel="####")
     if tabla.empty:
         st.info("No hay clientes en la tabla con estos filtros.")
@@ -106,7 +107,7 @@ with scoring:
             format_func=lambda cid: (f"{cid} · {tabla.loc[tabla['Cliente'] == cid, 'Probabilidad de churn (%)'].iloc[0]:.1f}% · "
                                      f"{tabla.loc[tabla['Cliente'] == cid, 'Nivel de riesgo'].iloc[0]}"),
             help="Clientes de la tabla de arriba, en el mismo orden (de mayor a menor probabilidad).")
-        explicacion, base = M.explicar_cliente(resultado["modelo"], puntuado_total, elegido, n=5)
+        explicacion, base = M.explicar_cliente_campeon(resultado["modelo"], puntuado_total, elegido, n=5)
         fila = puntuado_total[puntuado_total["Customer_ID"] == elegido].iloc[0]
 
         izquierda, derecha = st.columns([1, 2], gap="large")
@@ -119,21 +120,22 @@ with scoring:
                 st.caption(f"Cliente promedio de la base: {base['probabilidad_promedio']:.1%}")
             lectura = explicacion.iloc[0]
             st.markdown(f"Lo que más mueve su riesgo es **{lectura['Variable'].lower()}**, que "
-                        f"{'lo sube' if lectura['Aporte'] > 0 else 'lo baja'} frente al cliente promedio.")
+                        f"{'lo sube' if lectura['Aporte'] > 0 else 'lo baja'} {abs(lectura['Aporte']):.1f} puntos frente al valor típico.")
         with derecha:
             orden = explicacion.iloc[::-1]
             fig = go.Figure(go.Bar(
                 x=orden["Aporte"], y=orden["Variable"], orientation="h",
                 marker_color=[ROJO if v > 0 else VERDE for v in orden["Aporte"]],
                 customdata=orden["Valor del cliente"].astype(str),
-                hovertemplate="%{y}<br>Valor del cliente: %{customdata}<br>Aporte: %{x:+.2f}<extra></extra>"))
+                hovertemplate="%{y}<br>Valor del cliente: %{customdata}<br>Aporte: %{x:+.1f} pts<extra></extra>"))
             fig.add_vline(x=0, line_color=GRIS)
             fig.update_layout(height=280, margin=dict(l=10, r=20, t=30, b=10),
                               title=dict(text="Las 5 variables que más pesan en su probabilidad", font_size=14),
-                              xaxis_title="Aporte al riesgo frente al cliente promedio (escala logit)")
+                              xaxis_title="Cambio en su probabilidad (puntos porcentuales)")
             st.plotly_chart(fig, width="stretch")
-        st.caption("Naranja: sube su riesgo · cian: lo baja. El aporte es exacto para la regresión logística: "
-                   "coeficiente × (valor del cliente − valor promedio). Origen: resultado del modelo, no es dato observado. "
+        st.caption("Naranja: sube su riesgo · cian: lo baja. Aporte = probabilidad del cliente − probabilidad si esa "
+                   "variable tuviera el valor típico (mediana del entrenamiento), en puntos porcentuales. "
+                   "Origen: resultado del modelo, no es dato observado. "
                    "Explica por qué el modelo le dio esa probabilidad; no prueba que esa sea la causa real de que se vaya. "
                    "Algunas variables vienen en escala log del CSV (ver contrato de datos).")
 
@@ -170,7 +172,7 @@ with segmentos:
         ayuda.titulo_grafica(
             "Método del codo",
             "Cuánto baja la suma de distancias dentro de los clusters (WCSS) al agregar cada cluster.",
-            "El codo es donde la curva deja de bajar mucho; el punto rojo marca el número elegido.",
+            "El codo es donde la curva deja de bajar mucho; el punto naranja marca el número elegido.",
             "Cuántos segmentos usar.", nivel="####")
         fig = go.Figure(go.Scatter(x=ind["k"], y=ind["WCSS"], mode="lines+markers", line_color=AZUL,
                                    hovertemplate="k = %{x}<br>WCSS = %{y:,.0f}<extra></extra>"))
@@ -187,7 +189,7 @@ with segmentos:
         ayuda.titulo_grafica(
             "Relación de cada agrupamiento con el churn (V de Cramér)",
             "Qué tanto separa el abandono cada número de clusters.",
-            "De 0 (no separa) a 1 (separa perfecto). La barra roja es el número elegido.",
+            "De 0 (no separa) a 1 (separa perfecto). La barra naranja es el número elegido.",
             "Si los segmentos sirven para priorizar la retención.", nivel="####")
         v = ind.dropna(subset=["V de Cramér"])
         fig = go.Figure(go.Bar(x=v["k"], y=v["V de Cramér"],
@@ -204,7 +206,7 @@ with segmentos:
         ayuda.titulo_grafica(
             "Índices de validación",
             "Silueta, Calinski-Harabasz y Davies-Bouldin para 2 a 10 clusters.",
-            "Silueta y Calinski-Harabasz: mayor es mejor. Davies-Bouldin: menor es mejor. La línea roja marca el número elegido.",
+            "Silueta y Calinski-Harabasz: mayor es mejor. Davies-Bouldin: menor es mejor. La línea naranja marca el número elegido.",
             "Comprobar estadísticamente el número de clusters.", nivel="####")
         cols = st.columns(3, gap="small")
         for col, (nombre, mejor) in zip(cols, [("Silueta", "mayor es mejor"), ("Calinski-Harabasz", "mayor es mejor"),
@@ -328,7 +330,7 @@ with segmentos:
         ayuda.titulo_grafica(
             "Comparación con cluster jerárquico (dendrograma, método de Ward)",
             "Cómo se agrupan 2,000 clientes con otro método de clustering.",
-            "Cada unión es una fusión de grupos; la línea roja corta en el número de clusters elegido.",
+            "Cada unión es una fusión de grupos; la línea naranja corta en el número de clusters elegido.",
             "Validar los segmentos con un segundo método.", nivel="####")
         d = sch.dendrogram(jer["enlace"], no_plot=True)
         xs, ys = [], []
@@ -349,10 +351,11 @@ with segmentos:
 # ================================================================== Modelo
 with modelo_tab:
     m = resultado["metricas"]
-    st.markdown(f"Regresión logística con {len(M.VARIABLES_NUMERICAS)} variables numéricas estandarizadas y "
-                f"{len(M.VARIABLES_CATEGORICAS)} categóricas. Entrenamiento con {resultado['n_train']:,} clientes y "
-                f"evaluación con {resultado['n_test']:,} que el modelo no vio (70/30). "
-                "El modelo usa toda la base: estas métricas no cambian con los filtros.")
+    st.markdown(f"**Gradient Boosting** (modelo campeón): 11 variables del modelo final de SAS, entrenado con "
+                f"{resultado['n_train']:,} clientes (80%, limpio) y evaluado con {resultado['n_test']:,} que el modelo "
+                "no vio (20%, sin limpiar ni imputar). Regla de decisión: probabilidad > 50% → campaña \"No te vayas\". "
+                "Las métricas no cambian con los filtros. La comparación contra los otros cuatro modelos está en "
+                "**Comparativa y predicción**.")
 
     k = st.columns(5)
     k[0].metric("AUC", f"{m['AUC']:.3f}", help="Qué tan bien separa a quien se va de quien se queda (0.5 = azar, 1 = perfecto).")
@@ -382,26 +385,27 @@ with modelo_tab:
         st.markdown("#### Lectura de las métricas")
         st.markdown(
             f"- Detecta **{m['Recall']:.0%}** de los clientes que abandonan ({mt['VP']:,} de {mt['VP'] + mt['FN']:,}).\n"
-            f"- Su accuracy ({m['Accuracy']:.1%}) es menor que decir siempre \"no abandona\" "
-            f"({m['Accuracy línea base']:.1%}), porque el modelo se ajustó para no dejar escapar a quienes se van: "
-            f"acepta {mt['FP']:,} falsas alarmas a cambio de detectar a más clientes en riesgo.\n"
-            f"- Por eso se evalúa con **AUC ({m['AUC']:.3f})** y **recall**: en retención cuesta más perder "
-            "a un cliente que contactar a uno que no se iba a ir.")
+            f"- Cuando marca a un cliente como abandono, acierta **{m['Precisión']:.0%}** de las veces: solo "
+            f"{mt['FP']:,} falsas alarmas.\n"
+            f"- Su accuracy ({m['Accuracy']:.1%}) supera a decir siempre \"no abandona\" ({m['Accuracy línea base']:.1%}).\n"
+            f"- Se evalúa con **AUC ({m['AUC']:.3f})** y **recall**: en retención cuesta más perder a un cliente "
+            "que contactar a uno que no se iba a ir.")
 
-    coef = M.coeficientes(resultado["modelo"]).head(12)
+    imp = G.importancia().copy()
+    imp["Variable"] = imp["Variable"].map(lambda v: M.NOMBRES_CAMPEON.get(v.replace("log_", ""),
+                                                                         M.NOMBRES.get(v.replace("log_", ""), v)))
+    imp = imp.sort_values("Baja del AUC", ascending=False)
     ayuda.titulo_grafica(
-        f"Variable con más influencia: {coef.iloc[0]['Variable']} (×{coef.iloc[0]['Razón de momios']:.2f})",
-        "Las 12 variables con más peso en el modelo y si aumentan o reducen el riesgo de abandono.",
-        "Rojo aumenta el riesgo; verde lo reduce. La etiqueta (×) es la razón de momios por cada desviación estándar.",
+        f"Variable con más influencia: {imp.iloc[0]['Variable']}",
+        "Cuánto baja el AUC del modelo si se revuelve cada variable (importancia por permutación en test).",
+        "Barra más larga = el modelo depende más de esa variable. No indica si sube o baja el riesgo.",
         "Qué comportamientos atacar con las acciones de retención.", nivel="####")
     fig = go.Figure(go.Bar(
-        x=coef["Coeficiente"][::-1], y=coef["Variable"][::-1], orientation="h",
-        marker_color=[ROJO if v > 0 else VERDE for v in coef["Coeficiente"][::-1]],
-        text=[f"×{r:.2f}" for r in coef["Razón de momios"][::-1]], textposition="outside",
-        hovertemplate="%{y}: coeficiente %{x:.3f}<extra></extra>"))
-    fig.update_layout(height=420, margin=dict(l=10, r=40, t=10, b=10),
-                      xaxis_title="Coeficiente (variables estandarizadas)")
+        x=imp["Baja del AUC"][::-1], y=imp["Variable"][::-1], orientation="h", marker_color=AZUL,
+        text=[f"{v:.3f}" for v in imp["Baja del AUC"][::-1]], textposition="outside",
+        hovertemplate="%{y}: el AUC baja %{x:.3f}<extra></extra>"))
+    fig.update_layout(height=420, margin=dict(l=10, r=40, t=10, b=10), xaxis_title="Baja del AUC al revolver la variable")
     st.plotly_chart(fig, use_container_width=True)
-    st.caption("Rojo: aumenta el riesgo · verde: lo reduce. La etiqueta (×) es la razón de momios: cuánto se "
-               "multiplican los momios de abandono cuando la variable sube una desviación estándar. "
-               "Son relaciones, no causas.")
+    st.caption("Importancia por permutación calculada en el notebook de modelos. Son relaciones, no causas. "
+               "Para ver si una variable sube o baja el riesgo de un cliente en particular, usa la explicación por "
+               "cliente en Scoring de clientes.")

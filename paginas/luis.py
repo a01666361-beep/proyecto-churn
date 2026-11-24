@@ -60,7 +60,7 @@ with monitoreo:
                 st.error(f"**{alerta['titulo']}** · {alerta['motivo']}", icon=":material/warning:")
             else:
                 st.success(f"**{alerta['titulo']}**: sin alerta · {alerta['motivo']}", icon=":material/check_circle:")
-        st.caption("Predicción del modelo de regresión logística (pantalla Clientes prioritarios), no dato observado.")
+        st.caption("Predicción del Gradient Boosting, el modelo campeón (pantalla Clientes prioritarios), no dato observado.")
 
     with st.expander("Probar las alertas con datos modificados (simulación)"):
         st.info("SIMULACIÓN: se modifica una copia de los datos de la selección y se vuelve a puntuar con el modelo. "

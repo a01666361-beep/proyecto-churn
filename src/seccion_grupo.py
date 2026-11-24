@@ -53,4 +53,4 @@ def mostrar(df, df_general, regla, filtros):
       Los filtros no explican por qué se fueron los clientes.<br>
       Se usan los mismos criterios de riesgo para todos: carrito abandonado mayor a {regla['carrito_min']:.2f}%
       y {regla['llamadas_min']} o más llamadas.</p></div>'''
-    st.markdown("".join(linea.strip() for linea in html.splitlines()), unsafe_allow_html=True)
+    st.markdown(" ".join(linea.strip() for linea in html.splitlines()), unsafe_allow_html=True)

@@ -14,7 +14,7 @@ from src.contexto import obtener_datos
 def modelo_y_puntajes():
     """Entrena el modelo y los segmentos con toda la base y puntúa a todos los clientes."""
     df = obtener_datos()
-    resultado = M.entrenar_modelo(df)
+    resultado = M.entrenar_campeon()  # Gradient Boosting (24-nov)
     segmentos = M.entrenar_segmentos(df)
     puntuado = M.puntuar(df, resultado["modelo"])
     puntuado["Segmento"] = segmentos["etiquetas"]

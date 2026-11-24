@@ -50,7 +50,7 @@ with izquierda:
             f"Abandono {tasa:.1f}% vs. meta {meta_actual:.1f}%",
             "La tasa de abandono del grupo seleccionado comparada con la meta de churn, y la proporción de activos "
             "contra los que ya abandonaron.",
-            "La barra es el abandono actual y la línea azul la meta. Barra roja: estamos arriba de la meta; verde: abajo.",
+            "La barra es el abandono actual y la línea azul la meta. Barra naranja: estamos arriba de la meta; cian: abajo.",
             "Qué tan urgente es la campaña de retención para este grupo.")
         meta = st.number_input("Meta de churn (%)", min_value=0.0, max_value=100.0,
                                value=META_CHURN * 100, step=0.5, key="a_meta",
@@ -74,7 +74,7 @@ with izquierda:
         dona.update_layout(height=200, margin=dict(l=0, r=0, t=0, b=0), showlegend=True,
                            legend=dict(orientation="h", y=-0.05), paper_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(dona, key="dona", use_container_width=True, config=SIN_BARRA)
-        st.caption(f"Línea azul: meta ({meta:.1f}%). Barra roja si el churn está arriba de la meta, verde si está abajo.")
+        st.caption(f"Línea azul: meta ({meta:.1f}%). Barra naranja si el churn está arriba de la meta, cian si está abajo.")
 
 with derecha:
     with st.container(border=True, key="grafica_mapa"):
@@ -85,7 +85,7 @@ with derecha:
             f"(r = {corr['Cart_Abandonment_Rate']:.2f} y {corr['Customer_Service_Calls']:.2f})",
             "El abandono para cada combinación de carrito abandonado y llamadas a servicio, y los activos en riesgo "
             "por país.",
-            "Cada celda es la tasa de abandono de esa combinación: rojo = alta, verde = baja. r es la correlación de "
+            "Cada celda es la tasa de abandono de esa combinación: naranja = alta, cian = baja. r es la correlación de "
             "cada variable con el abandono (de −1 a 1).",
             "De aquí sale la regla de riesgo que define a quién contactar.")
         mapa = separar_panel(figura_riesgo(df, regla), 1, alto=390)
@@ -100,7 +100,7 @@ with st.container(border=True, key="grafica_segmentos"):
         (f"Abandono por {dimension.lower()}: {tabla.iloc[0]['segmento']} con {tabla.iloc[0]['tasa']:.1%} "
          f"(negocio {tasa_global:.1%})") if not tabla.empty else f"Abandono por {dimension.lower()}",
         "La tasa de abandono y el tamaño de cada segmento.",
-        "Barras rojas: el segmento abandona más que el negocio; verdes: menos. La línea punteada es el churn global. "
+        "Barras naranjas: el segmento abandona más que el negocio; cian: menos. La línea punteada es el churn global. "
         "La etiqueta muestra tasa · clientes.",
         "A qué segmentos dirigir primero la campaña, considerando también su tamaño.")
     st.radio("Comparar por", list(DIMENSIONES), horizontal=True, key="a_dimension")
@@ -140,7 +140,7 @@ with st.expander("Comportamientos relacionados: llamadas y días sin comprar"):
         st.plotly_chart(separar_panel(factores, 1), key="llamadas", use_container_width=True, config=SIN_BARRA)
     with b:
         st.plotly_chart(separar_panel(factores, 3), key="dias", use_container_width=True, config=SIN_BARRA)
-    st.caption("Verde: menor abandono que el negocio; rojo: mayor.")
+    st.caption("Cian: menor abandono que el negocio; naranja: mayor.")
 
 if st.button("Todas las variables"):
     ventanas.ventana_variables(df, tasa_global)

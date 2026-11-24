@@ -54,7 +54,7 @@ GUIAS = {
         "pasos": ["En **Scoring de clientes** revisa cuántos activos hay en cada nivel de riesgo y descarga la lista.",
                   "En **Segmentos** consulta los 3 grupos de comportamiento y su validación estadística.",
                   "En **Modelo y variables** revisa qué tan bueno es el modelo y qué variables pesan más."],
-        "indicadores": "Riesgo Alto ≥ 70% de probabilidad, Medio de 40% a 70%, Bajo menos de 40%. Las métricas del "
+        "indicadores": "Riesgo Alto ≥ 70% de probabilidad del Gradient Boosting, Medio de 40% a 70%, Bajo menos de 40%. Las métricas del "
                        "modelo usan toda la base y no cambian con los filtros.",
     },
     "segmentos": {

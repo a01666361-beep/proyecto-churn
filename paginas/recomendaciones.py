@@ -54,7 +54,7 @@ with st.container(border=True):
 - **Medir con un grupo de control:** contactar a una parte del grupo y dejar otra sin contactar, para saber si la campaña redujo el abandono o si solo coincidió.
 - **Registrar fechas y resultados de cada campaña:** hoy la base no tiene fechas, así que no se puede ver una tendencia ni un antes y después.
 - **Agregar costos e ingresos:** sin ellos no se puede calcular el ROI ni decidir cuánto presupuesto asignar a cada acción.
-- **Modelo predictivo:** la siguiente iteración agregará una probabilidad individual de abandono para ordenar mejor la lista de contacto.
+- **Actualizar el modelo:** reentrenar el Gradient Boosting cuando lleguen datos nuevos y comparar su AUC y recall contra el modelo actual antes de reemplazarlo.
 """)
     st.caption("Las recomendaciones salen de relaciones observadas en los datos, no de causas comprobadas. "
                "Se recalculan con los filtros y la regla de riesgo del panel derecho.")

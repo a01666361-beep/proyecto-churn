@@ -38,7 +38,8 @@ html, body, .stApp, .stApp p, .stApp li, .stApp label, .stApp input, .js-plotly-
 
 /* ---------- Barra superior oscura con línea azul ---------- */
 header[data-testid="stHeader"] {background: var(--cp-fondo); border-bottom: 2px solid var(--cp-azul);}
-header[data-testid="stHeader"] * {color: var(--cp-texto-suave); fill: var(--cp-texto-suave);}
+header[data-testid="stHeader"] * {color: var(--cp-texto-suave);}
+header[data-testid="stHeader"] svg path:not([fill="none"]) {fill: var(--cp-texto-suave);}
 
 /* ---------- Encabezado de marca ---------- */
 .cp-encabezado {display: flex; align-items: center; gap: 14px; padding-bottom: 10px;
