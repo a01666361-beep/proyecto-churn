@@ -72,7 +72,7 @@ GUIAS = {
                   "En **Predecir un cliente** escribe sus datos en escala normal y pulsa **Calcular probabilidad**."],
         "indicadores": "Las métricas salen del notebook de comparación (train 80% limpio + log, test 20% sin imputar) y "
                        "no cambian con los filtros. La probabilidad es una predicción del Gradient Boosting; "
-                       "si es mayor a 50% se manda la campaña «No te vayas».",
+                       "si es mayor a 30% se manda la campaña «No te vayas» (corte bajado de 50% por indicación del profesor).",
     },
     "asistente": {
         "para": "Preguntar en español a quién contactar, por qué y qué hacer, sin buscar en cada pantalla.",

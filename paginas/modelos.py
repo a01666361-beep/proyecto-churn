@@ -36,6 +36,8 @@ resultados = G.comparativa()
 test = resultados[resultados["Partición"] == "Test"].set_index("Modelo").loc[G.MODELOS]
 validacion = resultados[resultados["Partición"] == "Validación"].set_index("Modelo").loc[G.MODELOS]
 campeon = test.loc[G.CAMPEON]
+# Métricas del campeón con el corte de la regla (G.CORTE); la tabla del notebook usa 0.5 para comparar modelos.
+regla = G.resumen_campeon()["metricas_test"]
 
 comparar, curva, predecir = st.tabs(["Comparativa", "Curva ROC", "Predecir un cliente"])
 
@@ -45,13 +47,19 @@ with comparar:
     k1.metric("Modelo campeón", G.CAMPEON, help="Mayor AUC y KS en validación cruzada, igual que en SAS Model Studio.")
     k2.metric("AUC en test", f"{campeon['AUC']:.3f}",
               f"{campeon['AUC'] - test.drop(G.CAMPEON)['AUC'].max():+.3f} vs. el segundo", delta_color="normal")
-    k3.metric("Accuracy en test", f"{campeon['Accuracy']:.1%}", help="Línea base (decir siempre «no se va»): 71.1%.")
-    k4.metric("Recall en test", f"{campeon['Recall']:.1%}",
-              help="De los clientes que sí se fueron, cuántos detectó el modelo con el corte de 0.5.")
+    k3.metric(f"Accuracy en test (corte {G.CORTE:.0%})", f"{regla['Accuracy']:.1%}",
+              help="Línea base (decir siempre «no se va»): 71.1%.")
+    k4.metric(f"Recall en test (corte {G.CORTE:.0%})", f"{regla['Recall']:.1%}",
+              f"{(regla['Recall'] - campeon['Recall']) * 100:+.1f} pts vs. corte 50%", delta_color="normal",
+              help=f"De los clientes que sí se fueron, cuántos detecta el modelo con el corte de {G.CORTE:.0%} "
+                   f"(precisión {regla['Precisión']:.1%}).")
+    st.caption(f"Regla de decisión: probabilidad > {G.CORTE:.0%} → campaña «No te vayas». El corte se bajó de 50% a "
+               f"{G.CORTE:.0%} por indicación del profesor: detecta más clientes que se van a cambio de más falsos "
+               "positivos. La gráfica y la tabla de abajo comparan los cinco modelos con el corte de 50% del notebook.")
 
     ayuda.titulo_grafica(
         "Métricas de los cinco modelos en el test",
-        "Accuracy, precisión, recall, F1, AUC y KS de cada modelo con el corte de 0.5 (regla de la campaña).",
+        "Accuracy, precisión, recall, F1, AUC y KS de cada modelo con el mismo corte de 0.5 (salida del notebook).",
         "Mientras más alta la barra, mejor. El AUC no depende del corte; las demás sí.",
         "Confirmar que el Gradient Boosting es el que conviene usar para puntuar a los clientes.", nivel="####")
     fig = go.Figure()
@@ -110,9 +118,9 @@ with curva:
                       yaxis=dict(title="Tasa de verdaderos positivos (sensibilidad)", range=[0, 1.02], tickformat=".0%"),
                       legend=dict(x=0.98, y=0.02, xanchor="right", yanchor="bottom"))
     st.plotly_chart(fig, width="stretch")
-    m = resultados.query("Modelo == @G.CAMPEON and Partición == 'Test'").iloc[0]
-    st.caption(f"Con el corte de {G.CORTE} el Gradient Boosting detecta {m['Recall']:.1%} de los que se van "
-               f"con {m['Precisión']:.1%} de precisión. Pasa el cursor por la curva para ver otros cortes.")
+    st.caption(f"Con el corte de {G.CORTE} el Gradient Boosting detecta {regla['Recall']:.1%} de los que se van "
+               f"con {regla['Precisión']:.1%} de precisión (con 0.5 eran {campeon['Recall']:.1%} y "
+               f"{campeon['Precisión']:.1%}). Pasa el cursor por la curva para ver otros cortes.")
 
 # ================================================================== Predecir
 with predecir:
@@ -162,7 +170,7 @@ with predecir:
                                                   f"Regla: probabilidad > {G.CORTE:.0%} → campaña.")
         fig = go.Figure(go.Bar(x=[prob], y=[""], orientation="h", marker_color=NARANJA if campana else CIAN,
                                hovertemplate="%{x:.1%}<extra></extra>"))
-        fig.add_vline(x=G.CORTE, line_dash="dot", line_color=GRIS, annotation_text="corte 50%")
+        fig.add_vline(x=G.CORTE, line_dash="dot", line_color=GRIS, annotation_text=f"corte {G.CORTE:.0%}")
         fig.update_layout(height=110, margin=dict(l=10, r=10, t=20, b=10), showlegend=False,
                           xaxis=dict(range=[0, 1], tickformat=".0%"))
         st.plotly_chart(fig, width="stretch")

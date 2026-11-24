@@ -16,7 +16,11 @@ De dónde sale cada cosa (ver notebooks/Equipo5_Limpieza_y_Modelos_Churn.ipynb):
   dependen de la escala), por eso aquí no se estandariza y reproduce exactamente el AUC del notebook.
 - comparativa_modelos.csv, roc_modelos.csv e importancia_gb.csv son salidas del notebook: métricas de los
   cinco modelos (árbol, bosque, red neuronal, regresión logística y gradient boosting).
-- Regla de decisión (Intelligent Decisioning): probabilidad de churn > 0.5 → campaña "No te vayas".
+- Regla de decisión (Intelligent Decisioning): probabilidad de churn > 0.3 → campaña "No te vayas".
+  El corte era 0.5; se bajó a 0.3 por retroalimentación del profesor (detectar más clientes que se van a
+  cambio de más falsos positivos). En test: recall 76.9% → 84.0%, precisión 91.3% → 83.4%.
+  resumen_campeon.json guarda las métricas del campeón con el corte 0.3; comparativa_modelos.csv conserva
+  las del notebook con 0.5 para comparar los cinco modelos con el mismo corte.
 """
 import numpy as np
 import pandas as pd
@@ -32,7 +36,7 @@ RUTA_TRAIN = CARPETA / "train_log.csv"
 RUTA_TEST = CARPETA / "test_log.csv"
 
 SEMILLA = 42
-CORTE = 0.5
+CORTE = 0.3  # antes 0.5; cambio pedido por el profesor (ver docstring)
 CAMPANA = "Enviar campaña \"No te vayas\""
 SIN_ACCION = "No hacer nada"
 
@@ -123,6 +127,12 @@ def predecir(modelo, datos, columnas_num, corte=CORTE):
     fila = preparar_cliente(datos, columnas_num)
     prob = float(modelo.predict_proba(fila)[:, 1][0])
     return {"probabilidad": prob, "decision": CAMPANA if prob > corte else SIN_ACCION, "fila_modelo": fila}
+
+
+def resumen_campeon():
+    """Métricas de test del campeón con el corte de la regla (resumen_campeon.json)."""
+    import json
+    return json.loads((CARPETA / "resumen_campeon.json").read_text(encoding="utf-8"))
 
 
 def comparativa():

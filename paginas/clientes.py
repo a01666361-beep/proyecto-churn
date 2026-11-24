@@ -353,7 +353,7 @@ with modelo_tab:
     m = resultado["metricas"]
     st.markdown(f"**Gradient Boosting** (modelo campeón): 11 variables del modelo final de SAS, entrenado con "
                 f"{resultado['n_train']:,} clientes (80%, limpio) y evaluado con {resultado['n_test']:,} que el modelo "
-                "no vio (20%, sin limpiar ni imputar). Regla de decisión: probabilidad > 50% → campaña \"No te vayas\". "
+                "no vio (20%, sin limpiar ni imputar). Regla de decisión: probabilidad > 30% (antes 50%, cambio pedido por el profesor) → campaña \"No te vayas\". "
                 "Las métricas no cambian con los filtros. La comparación contra los otros cuatro modelos está en "
                 "**Comparativa y predicción**.")
 

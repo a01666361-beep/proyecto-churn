@@ -39,6 +39,17 @@ class ModeloGB(unittest.TestCase):
         tabla = G.comparativa().query("Partición == 'Validación'").set_index("Modelo")
         self.assertEqual(tabla["AUC"].idxmax(), G.CAMPEON)
 
+    def test_corte_de_la_regla_y_metricas_guardadas(self):
+        # El profesor pidió bajar el corte de 0.5 a 0.3; las métricas guardadas deben corresponder a ese corte.
+        from sklearn.metrics import confusion_matrix
+        self.assertEqual(G.CORTE, 0.3)
+        resumen = G.resumen_campeon()
+        self.assertEqual(resumen["corte"], G.CORTE)
+        prob = self.modelo.predict_proba(self.test[self.num + G.CATEGORICAS])[:, 1]
+        vn, fp, fn, vp = confusion_matrix(self.test[G.OBJETIVO], (prob > G.CORTE).astype(int)).ravel()
+        self.assertEqual(resumen["matriz_test"], {"VN": vn, "FP": fp, "FN": fn, "VP": vp})
+        self.assertAlmostEqual(resumen["metricas_test"]["Recall"], vp / (vp + fn), places=3)
+
     def test_prediccion_desde_escala_original(self):
         fila = self.test.iloc[0]
         datos = {c.replace("log_", ""): (None if np.isnan(fila[c]) else

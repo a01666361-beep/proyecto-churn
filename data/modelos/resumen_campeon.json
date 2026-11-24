@@ -1,20 +1,21 @@
 {
   "campeon": "Gradient Boosting",
-  "corte": 0.5,
+  "corte": 0.3,
   "semilla": 42,
   "metricas_test": {
-    "Accuracy": 0.9119,
-    "Precisión": 0.9125,
-    "Recall": 0.7689,
-    "F1": 0.8346,
+    "Accuracy": 0.9055,
+    "Precisión": 0.8343,
+    "Recall": 0.8398,
+    "F1": 0.837,
     "AUC": 0.9243,
     "KS": 0.7734,
-    "Error de clasificación": 0.0881
+    "Error de clasificación": 0.0945
   },
   "matriz_test": {
-    "VN": 6897,
-    "FP": 213,
-    "FN": 668,
-    "VP": 2222
-  }
+    "VN": 6628,
+    "FP": 482,
+    "FN": 463,
+    "VP": 2427
+  },
+  "nota": "Métricas de test con corte 0.3 (antes 0.5: Accuracy 0.9119, Precisión 0.9125, Recall 0.7689, F1 0.8346; VN 6897, FP 213, FN 668, VP 2222). AUC y KS no dependen del corte. Recalculadas con src/modelo_gb.entrenar."
 }
