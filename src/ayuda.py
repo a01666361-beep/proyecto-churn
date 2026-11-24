@@ -74,6 +74,15 @@ GUIAS = {
                        "no cambian con los filtros. La probabilidad es una predicción del Gradient Boosting; "
                        "si es mayor a 50% se manda la campaña «No te vayas».",
     },
+    "asistente": {
+        "para": "Preguntar en español a quién contactar, por qué y qué hacer, sin buscar en cada pantalla.",
+        "pasos": ["Escribe una pregunta o usa una de las sugeridas de la derecha.",
+                  "El agente consulta los datos filtrados y el modelo antes de responder.",
+                  "Abre **Datos que consultó el agente** para ver de dónde salió la respuesta.",
+                  "Cambia los filtros del panel derecho para preguntar por un grupo específico."],
+        "indicadores": "Las cifras las calcula el dashboard; Gemini solo redacta. Las probabilidades son predicciones "
+                       "del Gradient Boosting, no datos observados.",
+    },
     "actualizacion": {
         "para": "Revisar si un archivo nuevo de clientes se puede usar, puntuarlo con el modelo y decidir si hay que reentrenar.",
         "pasos": ["Revisa el **estado actual**: base, modelo en uso y su AUC de referencia.",

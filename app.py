@@ -8,6 +8,7 @@ Modelo predictivo     → Clientes prioritarios               (paginas/clientes.
                         Segmentos de clientes (K-Means)     (paginas/segmentos.py)
                         Comparativa de modelos y predicción (paginas/modelos.py)
 Plan de acción        → Recomendaciones                     (paginas/recomendaciones.py)
+                        Asistente de retención (IA)         (paginas/asistente.py)
 Datos                 → Actualización de datos y del modelo (paginas/actualizacion.py)
 
 Los filtros (país, género, edad y criterios de riesgo) están a la derecha y son
@@ -45,6 +46,7 @@ pantalla = st.navigation({
     ],
     "Plan de acción": [
         st.Page("paginas/recomendaciones.py", title="Recomendaciones", icon=":material/task_alt:"),
+        st.Page("paginas/asistente.py", title="Asistente de retención (IA)", icon=":material/smart_toy:"),
     ],
     "Datos": [
         st.Page("paginas/actualizacion.py", title="Actualización de datos y del modelo", icon=":material/sync:"),
