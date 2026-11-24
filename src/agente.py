@@ -24,7 +24,7 @@ from src.indicadores import resumen_riesgo
 
 URL = "https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent"
 # Se prueban en orden; se usa el primero que responda a tiempo (Google retiró gemini-2.x en 2026).
-MODELOS = ["gemini-3.8-flash", "gemini-flash-lite-latest", "gemini-flash-latest"]
+MODELOS = ["gemini-flash-lite-latest", "gemini-3.8-flash", "gemini-flash-latest"]
 MAX_VUELTAS = 5
 
 INSTRUCCIONES = f"""Eres el asistente de retención de CartPulse Analytics, un e-commerce. Ayudas al equipo
@@ -172,7 +172,7 @@ class Herramientas:
             return {"error": f"{type(exc).__name__}: {exc}"}
 
 
-def enviar_gemini(clave, cuerpo, modelo, timeout=45):
+def enviar_gemini(clave, cuerpo, modelo, timeout=25):
     """Llama a la API de Gemini (REST). Regresa el JSON de respuesta o lanza un error legible."""
     if modelo.startswith("gemini-3"):  # razonamiento corto: respuestas en segundos, no en minutos
         cuerpo = {**cuerpo, "generationConfig": {**cuerpo.get("generationConfig", {}),
