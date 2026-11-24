@@ -25,12 +25,32 @@ if df.empty:
     st.stop()
 
 r = resumen_carlos(df, regla)
+abandonaron = int(df["Churned"].sum())
+
+with st.container(border=True, key="supuesto_dinero"):
+    st.markdown("**SUPUESTO · Valor en dinero por cliente**")
+    s1, s2 = st.columns(2)
+    valor_cliente = s1.number_input(
+        "Valor promedio de un cliente ($)", min_value=0.0, value=0.0, step=100.0, format="%.2f", key="c_valor",
+        help="Lo escribe el usuario. El CSV no trae moneda para Lifetime_Value, así que este monto es un supuesto.")
+    presupuesto = s2.number_input(
+        "Presupuesto de la campaña de retención ($, opcional)", min_value=0.0, value=0.0, step=1000.0,
+        format="%.2f", key="c_presupuesto", help="Solo se usa para estimar el ROI del escenario.")
+    st.caption("Las cifras en dinero de esta pantalla son SUPUESTOS: clientes observados × el valor que escribas aquí. "
+               "Con 0 se muestran como «No calculable».")
+
+
+def dinero(clientes):
+    return f"${clientes * valor_cliente:,.0f}" if valor_cliente > 0 else "No calculable"
+
+
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Clientes evaluados", f"{r['clientes']:,}")
 m2.metric("Abandono observado", f"{r['tasa']:.1%}", f"{(r['tasa'] - tasa_global) * 100:+.1f} pts vs. global",
           delta_color="inverse")
 m3.metric("Mediana de Lifetime_Value", f"{r['mediana_ltv']:.3f}", help="Escala del CSV (logaritmo), no es moneda.")
-m4.metric("Pérdida en dinero / ROI", "No calculable", help="Faltan moneda del LTV, costos y resultados de campañas.")
+m4.metric("SUPUESTO · Pérdida en dinero", dinero(abandonaron),
+          help=f"{abandonaron:,} clientes que abandonaron × valor por cliente escrito arriba. No sale del CSV.")
 
 cuartiles = cuartiles_ltv(df, df_general)
 izquierda, derecha = st.columns([1, 1.1], gap="medium")
@@ -88,16 +108,25 @@ with izquierda:
         alto_valor = cuartiles.iloc[-1]
         st.metric("SIMULACIÓN · Clientes que se retendrían", f"{escenario(r['clientes'], puntos):,}")
         st.metric("SIMULACIÓN · De valor alto (Q4)", f"{escenario(int(alto_valor['clientes']), puntos):,}")
+        st.metric("SIMULACIÓN · Dinero que se conservaría", dinero(escenario(r['clientes'], puntos)))
         st.caption("Clientes × reducción supuesta. Es una simulación aritmética, no un pronóstico del efecto de una campaña.")
 with derecha:
     with st.container(border=True):
         st.markdown("### Presupuesto y efectividad de campañas")
-        st.markdown("""
-| Dato necesario | Estado |
+        retenidos = escenario(r["clientes"], puntos)
+        beneficio = retenidos * valor_cliente
+        if valor_cliente > 0 and presupuesto > 0:
+            roi = f"{(beneficio - presupuesto) / presupuesto:+.0%} (supuesto)"
+        else:
+            roi = "No calculable"
+        st.markdown(f"""
+| Dato | Estado |
 |---|---|
-| Presupuesto de retención | Sin datos |
-| Ingresos atribuibles | Sin datos |
-| ROI de campañas | No calculable |
+| Valor por cliente | {f"${valor_cliente:,.2f} (supuesto)" if valor_cliente > 0 else "Sin datos"} |
+| Presupuesto de retención | {f"${presupuesto:,.2f} (supuesto)" if presupuesto > 0 else "Sin datos"} |
+| Valor en riesgo (activos en perfil) | {dinero(r["activos_en_riesgo"])} |
+| Ingresos conservados en el escenario | {dinero(retenidos)} |
+| ROI del escenario | {roi} |
 | Resultados antes / después | No disponibles |
 """)
         st.caption("Para evaluar la inversión (y comparar retención contra adquisición) se necesitan costos, fechas, "
