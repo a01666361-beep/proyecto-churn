@@ -6,6 +6,9 @@ Entrena una sola vez el Gradient Boosting (modelo campeón) y los segmentos de s
 y guarda el resultado en caché. Usa exactamente las mismas funciones que la pantalla 05, así que
 la probabilidad, el nivel de riesgo y el segmento de cada cliente son los mismos en las dos pantallas.
 """
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
 import streamlit as st
 
 from src import modelo as M
@@ -16,6 +19,7 @@ from src.contexto import obtener_datos
 def modelo_y_puntuacion():
     df = obtener_datos()
     resultado = M.entrenar_campeon()  # Gradient Boosting (24-nov)
+    resultado["entrenado"] = datetime.now(ZoneInfo("America/Mexico_City"))
     segmentos = M.entrenar_segmentos(df)
     puntuado = M.puntuar(df, resultado["modelo"])
     puntuado["Segmento"] = segmentos["etiquetas"]

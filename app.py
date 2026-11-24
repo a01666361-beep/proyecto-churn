@@ -8,6 +8,7 @@ Modelo predictivo     → Clientes prioritarios               (paginas/clientes.
                         Segmentos de clientes (K-Means)     (paginas/segmentos.py)
                         Comparativa de modelos y predicción (paginas/modelos.py)
 Plan de acción        → Recomendaciones                     (paginas/recomendaciones.py)
+Datos                 → Actualización de datos y del modelo (paginas/actualizacion.py)
 
 Los filtros (país, género, edad y criterios de riesgo) están a la derecha y son
 los mismos para todas las pantallas.
@@ -44,6 +45,9 @@ pantalla = st.navigation({
     ],
     "Plan de acción": [
         st.Page("paginas/recomendaciones.py", title="Recomendaciones", icon=":material/task_alt:"),
+    ],
+    "Datos": [
+        st.Page("paginas/actualizacion.py", title="Actualización de datos y del modelo", icon=":material/sync:"),
     ],
 }, position="top")
 

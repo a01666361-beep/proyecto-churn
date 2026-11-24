@@ -74,6 +74,16 @@ GUIAS = {
                        "no cambian con los filtros. La probabilidad es una predicción del Gradient Boosting; "
                        "si es mayor a 50% se manda la campaña «No te vayas».",
     },
+    "actualizacion": {
+        "para": "Revisar si un archivo nuevo de clientes se puede usar, puntuarlo con el modelo y decidir si hay que reentrenar.",
+        "pasos": ["Revisa el **estado actual**: base, modelo en uso y su AUC de referencia.",
+                  "Sube un CSV nuevo o usa la **muestra de demostración**.",
+                  "Si el contrato de datos lo rechaza, el mensaje dice qué columna o regla falló.",
+                  "En **Monitoreo del modelo** compara el AUC y el recall contra la referencia.",
+                  "Descarga la lista de clientes puntuados para la campaña."],
+        "indicadores": "Se recomienda reentrenar si el AUC baja más de 0.03 contra la referencia. Una variable se "
+                       "marca para revisar si su promedio cambia más de 10% frente a la base actual.",
+    },
     "recomendaciones": {
         "para": "Decidir qué acciones tomar primero y cómo medir si funcionaron.",
         "pasos": ["La tabla de prioridades ordena las acciones; la 1 es por donde conviene empezar.",
