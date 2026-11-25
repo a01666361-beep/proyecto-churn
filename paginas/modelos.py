@@ -9,6 +9,8 @@ Origen de cada cifra (no se mezclan):
 - Probabilidad de un cliente: predicción del Gradient Boosting, no es un dato observado.
 Esta pantalla no usa los filtros de la derecha: los modelos se evalúan con el test completo.
 """
+import json
+
 import plotly.graph_objects as go
 import streamlit as st
 
@@ -37,7 +39,7 @@ test = resultados[resultados["Partición"] == "Test"].set_index("Modelo").loc[G.
 validacion = resultados[resultados["Partición"] == "Validación"].set_index("Modelo").loc[G.MODELOS]
 campeon = test.loc[G.CAMPEON]
 # Métricas del campeón con el corte de la regla (G.CORTE); la tabla del notebook usa 0.5 para comparar modelos.
-regla = G.resumen_campeon()["metricas_test"]
+regla = json.loads((G.CARPETA / "resumen_campeon.json").read_text(encoding="utf-8"))["metricas_test"]
 
 comparar, curva, predecir = st.tabs(["Comparativa", "Curva ROC", "Predecir un cliente"])
 
