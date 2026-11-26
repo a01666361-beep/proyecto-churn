@@ -132,16 +132,43 @@ El texto azul pequeño usa `#4DA3FF`, con 6.42:1 sobre el fondo.
 
 ## 3. La jerarquía, justificada con la fuente
 
-> **Pendiente del equipo:** citar la **investigación 1** (la de lectura) en cada punto. El criterio pide que la justificación venga de esa investigación y no de preferencias personales. Abajo está la jerarquía tal como está construida, con el espacio para la cita.
+**Fuente:** la investigación 1 del equipo, *Diseño de Interfaces de Usuario* (Equipo 5, septiembre–octubre de 2026). Está resumida en [`investigacion/investigacion-1.md`](../investigacion/investigacion-1.md), con la liga al documento completo. Tiene cuatro lecturas y un contrato de diseño que el equipo acordó en la Fase 2:
 
-| Nivel | Qué se ve | Dónde | Justificación (investigación 1) |
+- **Lectura A:** las 10 heurísticas de usabilidad de Nielsen.
+- **Lectura B:** HEART y el proceso *Goals → Signals → Metrics*.
+- **Lectura C:** WCAG y accesibilidad.
+- **Lectura D:** Atomic Design de Brad Frost.
+
+Abajo, «Regla n» se refiere a las reglas de ese contrato de diseño.
+
+### El orden de cada pantalla
+
+El orden se aplica igual en todas las pantallas: de arriba hacia abajo va de lo que decide a lo que explica, y de lo que explica a lo que se opera.
+
+| Nivel | Qué se ve | Dónde y cómo | Justificación (investigación 1) |
 |---|---|---|---|
-| 1 | Título de la pantalla y conteo del grupo («7,534 de 50,000 clientes en el grupo seleccionado») | Arriba a la izquierda de cada pantalla | *[cita de la investigación 1]* |
-| 2 | Dos KPI grandes (tasa de abandono y activos en perfil de riesgo) contra su meta | Primera fila, números a 2.4 rem en azul | *[cita]* |
-| 3 | Peso del grupo seleccionado en el problema | Justo debajo de los KPI (retroalimentación del 12 de noviembre) | *[cita]* |
-| 4 | Gráficas de detalle con su pregunta | Debajo, en pares | *[cita]* |
-| 5 | Listas de clientes | Cerradas en un desplegable, solo para Operaciones | *[cita]* |
-| — | Filtros | Columna derecha, separada del contenido | *[cita]* |
+| 1 | Título de la pantalla y conteo del grupo («7,534 de 50,000 clientes en el grupo seleccionado») | Arriba a la izquierda; título `h2` a 1.25 rem y el conteo justo debajo (`ayuda.titulo_pantalla`, `src/ayuda.py:107`) | **Lectura A, heurística 1 (visibilidad del sistema):** el usuario debe saber qué está pasando en todo momento. Antes de leer cualquier número, la persona sabe en qué pantalla está y sobre cuántos clientes se calcula lo que ve. |
+| 2 | KPI principales contra su meta: tasa de abandono y activos en perfil de riesgo | Primera fila; el número es el texto más grande de la pantalla (2.4 rem en azul, `.kpi-valor` en `src/estilos.py:77`) | **Lectura B (*Goals → Signals → Metrics*):** la meta se traduce en una métrica rastreable, y la lectura señala que a veces es más fácil medir el fracaso (el abandono) que el éxito. Por eso la métrica de la meta va primero y con más peso visual. **Lectura C:** usar títulos, espacios y jerarquía para organizar el contenido (Regla 6). **Lectura A, heurística 6 (reconocer antes que recordar):** el valor y su meta aparecen juntos, con chip ▲/▼, para que no haya que recordar cuál era la meta. |
+| 3 | Peso del grupo seleccionado en el problema | Justo debajo de los KPI; sus cifras van a 1.8 rem, un escalón abajo de los KPI (`src/seccion_grupo.py`, retroalimentación del 12 de noviembre) | **Lectura A, heurística 1:** después del indicador, la persona necesita saber qué parte del problema representa el filtro que eligió. **Lectura D:** el esqueleto de la plantilla coloca primero los elementos informativos importantes y después el detalle. |
+| 4 | Gráficas de detalle, cada una con su pregunta | Debajo, en pares y dentro de tarjetas iguales; título `h3` a 1.05 rem, pregunta a 0.88 rem y botón ⓘ (`ayuda.titulo_grafica`, `src/ayuda.py:123`) | **Regla 7 (Lectura D):** cada elemento debe tener un propósito, no solo verse bien; por eso ninguna gráfica entra sin su pregunta (sección 1). **Lectura A, heurística 8 (diseño minimalista):** la explicación larga queda en el ⓘ y no en la pantalla. **Heurística 10 (ayuda y documentación):** esa ayuda está junto a la gráfica que explica. **Lectura D:** la tarjeta de gráfica es un mismo organismo repetido en todas las pantallas. |
+| 5 | Listas de clientes individuales | Cerradas en un desplegable («Lista de clientes para campaña (oculta)», `paginas/luis.py:116`; `paginas/clientes.py:81`) y solo para el rol de Operaciones (sección 6) | **Lectura A, heurística 8:** es información que solo se necesita al operar la campaña; abierta, competiría con los indicadores. **Heurística 3 (control y libertad):** quien la necesita la abre y la cierra. **Regla 1:** elementos organizados de forma lógica, de lo que decide a lo que se opera. |
+| — | Filtros y sesión | Columna derecha fija, separada del contenido (`st.columns([4, 1])` en `app.py:62`), con el botón «Limpiar filtros» | **Lectura A, heurística 4 (consistencia):** los filtros se definen una sola vez en `app.py` y aparecen en el mismo lugar en todas las pantallas. **Heurística 3 (control y libertad):** «Limpiar filtros» permite regresar al estado oficial en un clic. **Lectura D (plantillas):** el esqueleto de la página es igual para todas; solo cambia el contenido. |
+
+### La escala tipográfica que hace visible ese orden
+
+La **Regla 8** (Lectura D) pide respetar la coherencia en toda la página, con los mismos tamaños y colores homologados. Por eso los tamaños se definen una sola vez en [`src/estilos.py`](../src/estilos.py) y cada nivel tiene el suyo:
+
+| Elemento | Tamaño | Clase en `src/estilos.py` |
+|---|---|---|
+| Valor de los KPI | 2.4 rem | `.kpi-valor` (línea 77) |
+| Cifras del peso del grupo | 1.8 rem | `.grupo-cantidad` (línea 108) |
+| Título de la pantalla | 1.25 rem | `h2.seccion-titulo` (línea 57) |
+| Título de cada gráfica | 1.05 rem | `div[class*="st-key-grafica_"] h3` (línea 60) |
+| Etiqueta de los KPI | 0.95 rem en negritas | `.kpi-label` (línea 76) |
+| Pregunta de la gráfica | 0.88 rem en cian | `p.pregunta-grafica` (línea 62) |
+| Notas y referencias | 0.72 a 0.84 rem en gris | `.kpi-referencia`, `.kpi-sub`, `.kpi-regla` |
+
+Así, el ojo encuentra primero el número que decide y después lo que lo explica. Esto atiende el problema de lectura que describe el entregable: que la información que la decisión necesita sea la primera que se ve. Los colores de cada nivel cumplen los mínimos de contraste de la sección 2 (**Lectura C**).
 
 ## 4. El estado vacío y dónde está el `st.stop()`
 
