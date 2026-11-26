@@ -45,7 +45,11 @@ class ExplicacionCliente(unittest.TestCase):
 
 class PantallasNuevas(unittest.TestCase):
     def app(self, pagina):
-        app = AppTest.from_file(str(CARPETA_PROYECTO / "app.py")).run(timeout=120)
+        app = AppTest.from_file(str(CARPETA_PROYECTO / "app.py"))
+        # Entregable 3: la app pide rol. Las pruebas de regresión entran con el rol "equipo" (todas las pantallas).
+        app.secrets["acceso"] = {"gerencia": "prueba-g", "operaciones": "prueba-o", "equipo": "prueba-e"}
+        app.session_state["rol"] = "equipo"
+        app.run(timeout=120)
         self.assertFalse(app.exception, [e.message for e in app.exception])
         app.switch_page(pagina).run(timeout=120)
         self.assertFalse(app.exception, [e.message for e in app.exception])
