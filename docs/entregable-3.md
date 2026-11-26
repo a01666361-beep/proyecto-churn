@@ -1,4 +1,4 @@
-**Corrida del CI en verde:** PEGAR_AQUI_LA_LIGA_A_LA_CORRIDA_VERDE_DE_GITHUB_ACTIONS
+**Corrida del CI en verde:** https://github.com/a01666361-beep/proyecto-churn/actions/runs/45742042792 (pull request #5, paso «Verificar contraste de la paleta (WCAG 2.2 AA)» incluido)
 
 # Entregable 3 · Del tablero al producto
 
