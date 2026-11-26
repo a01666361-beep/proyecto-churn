@@ -67,9 +67,11 @@ GRIS_TEXTO = "#B0B7C3"  # texto secundario, ayudas e íconos
 BLANCO = "#FFFFFF"      # texto principal
 
 # Tonos de apoyo (derivados de la paleta, solo cuando hace falta)
-AZUL_SUAVE = "#3A6EA5"  # barras "por debajo del promedio" junto a AZUL_DATOS
+AZUL_SUAVE = "#6699CC"  # barras "por debajo del promedio" (antes #3A6EA5: 2.34:1 sobre tarjetas, no pasaba WCAG)
 AZUL_TEXTO = "#4DA3FF"  # azul para texto pequeño sobre fondo oscuro
-LINEA = "#343B4A"       # bordes y cuadrícula
+LINEA = "#343B4A"       # bordes y cuadrícula (decorativo: no lleva información)
+AZUL_BOTON = "#0066D6"  # fondo de botones principales: texto blanco 5.4:1 (con #007BFF era 3.98:1)
+AZUL_BOTON_HOVER = "#0056B3"  # botón al pasar el cursor (texto blanco 7.0:1)
 
 # Nombres que ya usa el dashboard (no cambiar los nombres, solo los valores)
 AZUL = AZUL_DATOS       # color principal

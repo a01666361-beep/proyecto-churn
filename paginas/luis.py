@@ -15,6 +15,9 @@ from src.vistas import DEFINICIONES, alertas_modelo, calidad_datos, simular_dato
 from src.contrato_datos import resumen_validacion
 from src.demo_validaciones import CASOS as CASOS_DEMO, crear_demostracion
 from src.tablas_datos import configuracion_columnas
+from src import acceso
+
+acceso.exigir("paginas/luis.py")  # entregable 3: segunda barrera por rol
 
 c = contexto()
 df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
@@ -22,6 +25,10 @@ df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
 ayuda.titulo_pantalla("Centro de monitoreo y calidad", "luis",
                       "Alertas del modelo, calidad de los datos y lista de clientes para campañas · "
                       f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
+
+if df.empty:  # entregable 3: estado vacío declarado, igual que en las demás pantallas con filtros
+    st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
+    st.stop()
 
 # Retroalimentación 12-nov: se quitó la pestaña "Datos"; la lista de clientes queda oculta en un desplegable.
 monitoreo, definiciones = st.tabs(["Monitoreo", "Definiciones"])
@@ -52,7 +59,8 @@ with monitoreo:
             "Si los clientes activos de la selección tienen más riesgo de abandono que los del negocio, según el modelo.",
             f"Rojo = alerta encendida: la selección supera el valor del negocio en más de {ALERTA_PP * 100:.0f} puntos. "
             "Verde = sin alerta. Cambian con los filtros.",
-            "Si conviene adelantar la campaña de retención para el grupo seleccionado.")
+            "Si conviene adelantar la campaña de retención para el grupo seleccionado.",
+            pregunta="¿El grupo seleccionado tiene más riesgo que el negocio como para adelantar la campaña?")
         if not len(df):
             st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
         for alerta in alertas:

@@ -14,6 +14,9 @@ from src.seccion_factores import figura_factores
 from src.seccion_riesgo import figura_riesgo
 from src.indicadores import resumen_riesgo
 from src.vistas import DIMENSIONES, churn_por_segmento
+from src import acceso
+
+acceso.exigir("paginas/andrea.py")  # entregable 3: segunda barrera por rol
 
 c = contexto()
 df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
@@ -23,16 +26,16 @@ ayuda.titulo_pantalla("Panorama para priorizar campañas", "andrea",
                       "Concentración del abandono por segmento y por perfil de riesgo · "
                       f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
 
+if df.empty:  # entregable 3: se detiene antes de calcular o dibujar los KPI
+    st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
+    st.stop()
+
 # Dos KPI: tasa de abandono y activos en perfil de riesgo (se quitó la tarjeta de clientes por retroalimentación)
 k1, k2 = st.columns(2, gap="medium")
 with k1:
     seccion_kpis.tarjeta_churn(df, tasa_global, df_general)
 with k2:
     seccion_kpis.tarjeta_riesgo(df, regla, df_general)
-
-if df.empty:
-    st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
-    st.stop()
 
 # Retroalimentación 12-nov: el peso del grupo seleccionado en el problema sube junto a los KPI.
 seccion_grupo.mostrar(df, df_general, regla, {
@@ -51,7 +54,8 @@ with izquierda:
             "La tasa de abandono del grupo seleccionado comparada con la meta de churn, y la proporción de activos "
             "contra los que ya abandonaron.",
             "La barra es el abandono actual y la línea azul la meta. Barra naranja: estamos arriba de la meta; cian: abajo.",
-            "Qué tan urgente es la campaña de retención para este grupo.")
+            "Qué tan urgente es la campaña de retención para este grupo.",
+            pregunta="¿El abandono de este grupo está arriba o abajo de la meta, y qué tan urgente es actuar?")
         meta = st.number_input("Meta de churn (%)", min_value=0.0, max_value=100.0,
                                value=META_CHURN * 100, step=0.5, key="a_meta",
                                help="Meta propuesta por el equipo; Andrea la puede ajustar.")
@@ -87,7 +91,8 @@ with derecha:
             "por país.",
             "Cada celda es la tasa de abandono de esa combinación: naranja = alta, cian = baja. r es la correlación de "
             "cada variable con el abandono (de −1 a 1).",
-            "De aquí sale la regla de riesgo que define a quién contactar.")
+            "De aquí sale la regla de riesgo que define a quién contactar.",
+            pregunta="¿Con qué combinación de carrito abandonado y llamadas a servicio se concentra el abandono?")
         mapa = separar_panel(figura_riesgo(df, regla), 1, alto=390)
         st.plotly_chart(mapa, key="mapa", use_container_width=True, config=SIN_BARRA)
         st.caption(f"De aquí sale la regla de riesgo: carrito > {regla['carrito_min']:.2f}% y "
@@ -102,7 +107,8 @@ with st.container(border=True, key="grafica_segmentos"):
         "La tasa de abandono y el tamaño de cada segmento.",
         "Barras naranjas: el segmento abandona más que el negocio; cian: menos. La línea punteada es el churn global. "
         "La etiqueta muestra tasa · clientes.",
-        "A qué segmentos dirigir primero la campaña, considerando también su tamaño.")
+        "A qué segmentos dirigir primero la campaña, considerando también su tamaño.",
+        pregunta="¿Qué segmento abandona más y tiene suficientes clientes para justificar una campaña?")
     st.radio("Comparar por", list(DIMENSIONES), horizontal=True, key="a_dimension")
     if tabla.empty:
         st.info(f"Ningún segmento tiene {MINIMO_SEGMENTO} clientes o más con estos filtros.")
@@ -133,7 +139,8 @@ with st.expander("Comportamientos relacionados: llamadas y días sin comprar"):
         "Cómo cambia el abandono según el número de llamadas a servicio y los días desde la última compra.",
         "Cada barra es la tasa de abandono del rango; la línea punteada es el churn del negocio. "
         "El título de cada gráfica trae su correlación r con el abandono.",
-        "Qué comportamiento usar como disparador de una acción de retención.", nivel="####")
+        "Qué comportamiento usar como disparador de una acción de retención.", nivel="####",
+        pregunta="¿A partir de cuántas llamadas o días sin comprar conviene activar una acción de retención?")
     factores = figura_factores(df, tasa_global)
     a, b = st.columns(2, gap="medium")
     with a:

@@ -18,7 +18,11 @@ class DashboardRegression(unittest.TestCase):
         cls.df = cargar_datos(RUTA_DATOS)
 
     def app(self):
-        app = AppTest.from_file(str(CARPETA_PROYECTO / "app.py")).run(timeout=90)
+        app = AppTest.from_file(str(CARPETA_PROYECTO / "app.py"))
+        # Entregable 3: la app pide rol. Las pruebas de regresión entran con el rol "equipo" (todas las pantallas).
+        app.secrets["acceso"] = {"gerencia": "prueba-g", "operaciones": "prueba-o", "equipo": "prueba-e"}
+        app.session_state["rol"] = "equipo"
+        app.run(timeout=90)
         self.assertFalse(app.exception, [e.message for e in app.exception])
         return app
 

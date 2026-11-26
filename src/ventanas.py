@@ -3,7 +3,7 @@ Ventanas emergentes con la información de apoyo (se abren con los botones de ar
 RESPONSABLE: Integrante 7
 
 - Todas las variables: correlación de cada variable con el churn, churn por
-  quintil de la variable que elijas y cómo se relacionan entre sí.
+  quintil de la variable que elijas (la matriz entre variables se quitó en el entregable 3).
 - Definiciones: cómo se calcula cada KPI.
 - Datos: tabla filtrada y descarga en CSV.
 """
@@ -11,8 +11,9 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.config import AZUL, AZUL_CLARO, AZUL_PALIDO, META_RIESGO, NOMBRES, ROJO
-from src.indicadores import correlaciones, matriz_correlacion
+from src import ayuda
+from src.config import AZUL, AZUL_CLARO, META_RIESGO, NOMBRES, ROJO
+from src.indicadores import correlaciones
 from src.tablas_datos import configuracion_columnas
 
 
@@ -29,6 +30,12 @@ def ventana_variables(df, tasa_global):
     izq, der = st.columns([1, 1.15])
 
     with izq:
+        ayuda.titulo_grafica(
+            "Correlación de cada variable con el abandono",
+            "Qué tan fuerte se mueve cada variable junto con el abandono (r de −1 a 1).",
+            "Cada barra tiene su valor escrito: positivo = más abandono, negativo = menos.",
+            "Qué variables vale la pena vigilar como señal de riesgo.", nivel="####",
+            pregunta="¿Qué variables suben o bajan junto con el abandono?")
         corr = correlaciones(df)
         fig = go.Figure(go.Bar(
             x=corr.values, y=[_nombre(c) for c in corr.index], orientation="h",
@@ -44,6 +51,12 @@ def ventana_variables(df, tasa_global):
 
     with der:
         opciones = list(corr.index[::-1])
+        ayuda.titulo_grafica(
+            "Abandono por quintil de la variable elegida",
+            "La tasa de abandono en cada quinta parte de los clientes, ordenados por la variable.",
+            "Cada barra tiene su porcentaje escrito; la línea punteada es el abandono del negocio.",
+            "Desde qué valor de la variable conviene activar una acción.", nivel="####",
+            pregunta="¿A partir de qué valor de esta variable sube el abandono?")
         variable = st.selectbox("Variable", opciones, format_func=_nombre)
         grupos = pd.qcut(df[variable].rank(method="first"), q=5, labels=["Q1", "Q2", "Q3", "Q4", "Q5"])
         tabla = df.groupby(grupos, observed=False).agg(
@@ -60,19 +73,8 @@ def ventana_variables(df, tasa_global):
                           xaxis=dict(tickfont_size=10), paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)")
         st.plotly_chart(fig, config={"displayModeBar": False})
 
-        m = matriz_correlacion(df, n=8)
-        nombres = [_nombre(c) if c != "Churned" else "Abandono" for c in m.columns]
-        fig = go.Figure(go.Heatmap(
-            z=m.values, x=nombres, y=nombres, zmin=-1, zmax=1,
-            colorscale=[[0, AZUL], [0.5, AZUL_PALIDO], [1, ROJO]],
-            text=m.round(2).values, texttemplate="%{text}", textfont_size=9, showscale=False,
-            hovertemplate="%{y} · %{x}: %{z:.2f}<extra></extra>",
-        ))
-        fig.update_layout(title=dict(text="Relación entre las variables más importantes", font_size=13),
-                          height=300, margin=dict(l=0, r=0, t=30, b=0),
-                          xaxis=dict(tickfont_size=9, tickangle=-35), yaxis=dict(tickfont_size=9, autorange="reversed"),
-                          paper_bgcolor="rgba(0,0,0,0)")
-        st.plotly_chart(fig, config={"displayModeBar": False})
+        # Entregable 3: se quitó la matriz de correlación entre variables. Respondía qué variables se parecen
+        # entre sí, una pregunta de método que no cambia a quién contactar ni qué acción tomar.
 
 
 @st.dialog("Definiciones de los KPI", width="large")

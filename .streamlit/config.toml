@@ -3,7 +3,7 @@
 # Fondo #1A1D24 · Tarjetas #293545 · Azul de datos #007BFF · Naranja de advertencia #FFA03A
 # Cian de énfasis #3FD8E0 · Gris de texto secundario #B0B7C3 · Blanco de texto #FFFFFF
 base = "dark"
-primaryColor = "#007BFF"              # Azul de datos: botones, pestaña activa, foco
+primaryColor = "#0066D6"              # Azul de botón: texto blanco 5.4:1 (WCAG AA); con #007BFF era 3.98:1
 backgroundColor = "#1A1D24"           # Fondo principal
 secondaryBackgroundColor = "#293545"  # Fondo de tarjetas
 textColor = "#FFFFFF"

@@ -30,6 +30,7 @@ Dashboard en Streamlit con un **resumen general**, **tres pantallas (una por use
 - **Parte 2 — Validación:** [`contrato-datos.md`](contrato-datos.md), [`prompts/B2.md`](prompts/B2.md), pruebas en `tests/` y [workflow de GitHub Actions](.github/workflows/validacion-datos.yml).
 - **Parte 3 — Propuestas individuales:** [carpeta `ideas/`](ideas/) con un Markdown por integrante.
 - **Bloque anterior:** [`contrato-prompt.md`](contrato-prompt.md) y [`prompts/contrato-prompts.md`](prompts/contrato-prompts.md).
+- **Entregable 3 — Del tablero al producto:** [`docs/entregable-3.md`](docs/entregable-3.md) (gráficas con pregunta, contraste verificado en CI, jerarquía, estado vacío, controles y matriz de acceso por rol), [`prompts/B3.md`](prompts/B3.md) e [`investigacion/entregable-3.md`](investigacion/entregable-3.md).
 
 ## Observaciones de la sesión del 12 de noviembre
 
@@ -55,8 +56,8 @@ El menú de arriba está separado en cuatro bloques. Los filtros de la derecha (
 | Análisis por usuario | **Andrea · Priorizar campañas** (`paginas/andrea.py`) | Andrea López, gerente de retención | A qué segmentos dirigir la campaña | 2 KPI, peso del grupo en el problema, abandono contra meta editable (25%), mapa de calor carrito × llamadas y abandono por segmento con exportación CSV |
 | Análisis por usuario | **Luis · Monitoreo y calidad** (`paginas/luis.py`) | Luis Ramírez, operaciones de datos y CRM | Si hay alertas, si los datos son confiables y quién entra a la lista | Alertas del modelo con simulación para validarlas, calidad de datos, regla descriptiva de riesgo, lista de clientes oculta, contrato de datos y definiciones |
 | Análisis por usuario | **Carlos · Valor y presupuesto** (`paginas/carlos.py`) | Carlos Mendoza, estrategia y valor del cliente | Si se van los clientes valiosos y dónde invertir | Churn por cuartil de Lifetime_Value, segmentos de valor por país, escenario de reducción y datos que faltan para ROI |
-| Modelo predictivo | **Clientes prioritarios** (`paginas/clientes.py`) | Andrea y Luis | A qué clientes contactar primero | Scoring (niveles Alto/Medio/Bajo, lista oculta con descarga y explicación por cliente), Segmentos (3 clusters con validación estadística completa) y Modelo y variables |
-| Modelo predictivo | **Segmentos** (`paginas/segmentos.py`) | Andrea y Carlos | Qué tipo de cliente se va más y a quién de cada segmento contactar primero | Churn por segmento contra la selección, activos por nivel de riesgo y lista de contacto por segmento (oculta, con descarga) |
+| Modelo predictivo | **Clientes prioritarios** (`paginas/clientes.py`) | Luis (rol Operaciones; Andrea define los criterios) | A qué clientes contactar primero | Scoring (niveles Alto/Medio/Bajo, lista oculta con descarga y explicación por cliente), Segmentos (3 clusters: churn por segmento con prueba ji cuadrada y perfil; la validación completa está en el notebook de K-Means) y Modelo y variables |
+| Modelo predictivo | **Segmentos** (`paginas/segmentos.py`) | Andrea y Carlos (gráficas); Luis (lista de clientes) | Qué tipo de cliente se va más y a quién de cada segmento contactar primero | Churn por segmento contra la selección, activos por nivel de riesgo y lista de contacto por segmento (oculta, con descarga) |
 | Modelo predictivo | **Comparativa y predicción** (`paginas/modelos.py`) | Andrea, Luis y Carlos | Con qué modelo puntuar y si a un cliente se le manda la campaña | Métricas de 5 modelos (árbol, bosque, red neuronal, logística y gradient boosting), curva ROC en test y formulario para predecir con el Gradient Boosting con las 11 variables del modelo final (regla > 30% → «No te vayas»; antes 50%, se bajó por indicación del profesor) |
 | Plan de acción | **Recomendaciones** (`paginas/recomendaciones.py`) | Todo el equipo | Qué hacer primero y cómo medirlo | Tabla de prioridades y, por acción: qué hacer, por qué, activos a quienes aplica y cómo medirlo |
 
@@ -64,6 +65,23 @@ El menú de arriba está separado en cuatro bloques. Los filtros de la derecha (
 - Azul: datos y referencias; naranja: alertas o resultados desfavorables; cian: estados favorables y selecciones. La tasa general es una comparación, no una meta.
 
 Comprobación de funcionamiento: `python -m unittest discover -s tests -v`.
+
+## Acceso por rol (entregable 3)
+
+El dashboard pide **rol y contraseña** antes de mostrar cualquier pantalla. Cada rol ve solo lo que necesita:
+
+| Pantalla | Gerencia (Andrea, Carlos) | Operaciones (Luis) | Equipo |
+|---|:---:|:---:|:---:|
+| Resumen general, Recomendaciones | ✅ | ✅ | ✅ |
+| Andrea · Priorizar campañas, Carlos · Valor y presupuesto | ✅ | — | ✅ |
+| Segmentos (gráficas) | ✅ | ✅ | ✅ |
+| Segmentos: lista de clientes con ID y descarga | — | ✅ | ✅ |
+| Comparativa y predicción (métricas del modelo, sin datos de clientes) | ✅ | ✅ | ✅ |
+| Luis · Monitoreo, Clientes prioritarios, Asistente IA, Actualización de datos | — | ✅ | ✅ |
+
+Las contraseñas **no están en el repositorio**: van en *Secrets* (Streamlit Cloud → Manage app → Settings → Secrets) con el formato de [`.streamlit/secrets.toml.example`](.streamlit/secrets.toml.example). Sin esa sección `[acceso]`, la app no muestra ninguna pantalla. La matriz y el mecanismo están en [`src/acceso.py`](src/acceso.py); la justificación por pantalla, en [`docs/entregable-3.md`](docs/entregable-3.md).
+
+**Limitación:** es una contraseña compartida por rol, no una cuenta por persona: no se sabe quién de los que la comparten entró, no hay bloqueo por intentos fallidos ni registro de accesos, y si se filtra hay que cambiarla a mano en Secrets.
 
 ## Cómo correr el proyecto
 

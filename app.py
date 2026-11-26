@@ -13,10 +13,13 @@ Datos                 → Actualización de datos y del modelo (paginas/actualiz
 
 Los filtros (país, género, edad y criterios de riesgo) están a la derecha y son
 los mismos para todas las pantallas.
+
+Entregable 3: antes del menú se pide rol y contraseña (src/acceso.py). Cada rol ve
+solo sus pantallas; la matriz de acceso está en src/acceso.py y en docs/entregable-3.md.
 """
 import streamlit as st
 
-from src import estilos
+from src import acceso, estilos
 from src.contexto import preparar, obtener_datos
 from src.contrato_datos import ErrorContrato
 
@@ -29,33 +32,36 @@ except (ErrorContrato, ValueError, FileNotFoundError) as exc:
     st.code(str(exc))
     st.stop()
 estilos.aplicar()
-
-pantalla = st.navigation({
-    "Inicio": [
-        st.Page("paginas/resumen.py", title="Resumen general", icon=":material/summarize:", default=True),
-    ],
-    "Análisis por usuario": [
-        st.Page("paginas/andrea.py", title="Andrea · Priorizar campañas", icon=":material/campaign:"),
-        st.Page("paginas/luis.py", title="Luis · Monitoreo y calidad", icon=":material/notifications:"),
-        st.Page("paginas/carlos.py", title="Carlos · Valor y presupuesto", icon=":material/payments:"),
-    ],
-    "Modelo predictivo": [
-        st.Page("paginas/clientes.py", title="Clientes prioritarios", icon=":material/person_search:"),
-        st.Page("paginas/segmentos.py", title="Segmentos", icon=":material/groups:"),
-        st.Page("paginas/modelos.py", title="Comparativa y predicción", icon=":material/model_training:"),
-    ],
-    "Plan de acción": [
-        st.Page("paginas/recomendaciones.py", title="Recomendaciones", icon=":material/task_alt:"),
-        st.Page("paginas/asistente.py", title="Asistente de retención (IA)", icon=":material/smart_toy:"),
-    ],
-    "Datos": [
-        st.Page("paginas/actualizacion.py", title="Actualización de datos y del modelo", icon=":material/sync:"),
-    ],
-}, position="top")
-
 estilos.encabezado("Abandono de clientes")
+
+# Entregable 3: acceso por rol. Sin sesión válida, iniciar_sesion() detiene la app con st.stop().
+rol = acceso.iniciar_sesion()
+
+MENU = {  # grupo del menú → [(archivo, ícono)]; el título sale de acceso.PANTALLAS
+    "Inicio": [("paginas/resumen.py", ":material/summarize:")],
+    "Análisis por usuario": [("paginas/andrea.py", ":material/campaign:"),
+                             ("paginas/luis.py", ":material/notifications:"),
+                             ("paginas/carlos.py", ":material/payments:")],
+    "Modelo predictivo": [("paginas/clientes.py", ":material/person_search:"),
+                          ("paginas/segmentos.py", ":material/groups:"),
+                          ("paginas/modelos.py", ":material/model_training:")],
+    "Plan de acción": [("paginas/recomendaciones.py", ":material/task_alt:"),
+                       ("paginas/asistente.py", ":material/smart_toy:")],
+    "Datos": [("paginas/actualizacion.py", ":material/sync:")],
+}
+permitidas = acceso.pantallas_de(rol)
+menu = {}
+for grupo, paginas in MENU.items():
+    visibles = [st.Page(archivo, title=acceso.PANTALLAS[archivo], icon=icono, default=(archivo == permitidas[0]))
+                for archivo, icono in paginas if archivo in permitidas]
+    if visibles:
+        menu[grupo] = visibles
+# Solo se registran las pantallas del rol: las demás no están en el menú ni se abren por URL.
+pantalla = st.navigation(menu, position="top")
+
 principal, lateral = st.columns([4, 1], gap="large")
 with lateral:
+    acceso.barra_sesion()
     preparar()
 with principal:
     pantalla.run()

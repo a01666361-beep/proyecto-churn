@@ -17,6 +17,9 @@ import streamlit as st
 from src import ayuda
 from src import modelo_gb as G
 from src.config import AZUL, AZUL_CLARO, CIAN, GRIS, NARANJA
+from src import acceso
+
+acceso.exigir("paginas/modelos.py")  # entregable 3: segunda barrera por rol
 
 
 @st.cache_resource(show_spinner="Entrenando el Gradient Boosting (solo la primera vez)…")
@@ -63,7 +66,8 @@ with comparar:
         "Métricas de los cinco modelos en el test",
         "Accuracy, precisión, recall, F1, AUC y KS de cada modelo con el mismo corte de 0.5 (salida del notebook).",
         "Mientras más alta la barra, mejor. El AUC no depende del corte; las demás sí.",
-        "Confirmar que el Gradient Boosting es el que conviene usar para puntuar a los clientes.", nivel="####")
+        "Confirmar que el Gradient Boosting es el que conviene usar para puntuar a los clientes.", nivel="####",
+        pregunta="¿Qué modelo predice mejor el abandono en clientes que no vio al entrenar?")
     fig = go.Figure()
     for metrica, color in zip(["Accuracy", "Precisión", "Recall", "F1", "AUC"], [AZUL, AZUL_CLARO, NARANJA, GRIS, CIAN]):
         fig.add_bar(name=metrica, x=test.index, y=test[metrica], marker_color=color,
@@ -85,14 +89,10 @@ with comparar:
     st.caption(f"La diferencia de AUC entre validación y test es de {diferencia:.3f} o menos en todos los modelos: "
                "ninguno está sobreajustado. Cifras calculadas en el notebook de comparación.")
 
-    with st.expander("Qué variables usa más el Gradient Boosting"):
-        imp = G.importancia().head(10).iloc[::-1]
-        fig = go.Figure(go.Bar(x=imp["Baja del AUC"], y=imp["Variable"], orientation="h", marker_color=AZUL,
-                               hovertemplate="%{y}: el AUC baja %{x:.3f}<extra></extra>"))
-        fig.update_layout(height=340, margin=dict(l=10, r=10, t=10, b=10),
-                          xaxis_title="Cuánto baja el AUC si se revuelve la variable (test)")
-        st.plotly_chart(fig, width="stretch")
-        st.caption("Importancia por permutación. Las variables log_ están en escala log(x+1).")
+    # Entregable 3: se quitó la gráfica de importancia de variables de esta pantalla porque repetía la de
+    # Clientes prioritarios > Modelo y variables (misma pregunta, misma decisión).
+    st.caption("Las variables que más pesan en el Gradient Boosting están en **Clientes prioritarios → Modelo y "
+               "variables**.")
 
 # ================================================================== Curva ROC
 with curva:
@@ -102,7 +102,8 @@ with curva:
         "que marca por error (eje x).",
         "Mientras más se acerque la curva a la esquina superior izquierda, mejor. La diagonal es un modelo al azar "
         "(AUC 0.5). El AUC es el área bajo cada curva.",
-        "Elegir el modelo que mejor separa a los clientes que se van de los que se quedan.", nivel="####")
+        "Elegir el modelo que mejor separa a los clientes que se van de los que se quedan.", nivel="####",
+        pregunta="¿Qué modelo separa mejor a los clientes que se van de los que se quedan?")
     puntos = G.roc()
     elegidos = st.multiselect("Modelos", G.MODELOS, default=G.MODELOS, placeholder="Elige al menos uno")
     fig = go.Figure()
@@ -132,7 +133,8 @@ with predecir:
         "Escribe los datos del cliente en su escala normal; el dashboard saca log(x+1) de las variables "
         "transformadas, igual que en train y test, y el modelo calcula la probabilidad.",
         f"Si la probabilidad es mayor a {G.CORTE:.0%}, la regla de decisión manda la campaña «No te vayas».",
-        "Decidir si a un cliente concreto se le envía la campaña de retención.", nivel="####")
+        "Decidir si a un cliente concreto se le envía la campaña de retención.", nivel="####",
+        pregunta="¿Hay que enviarle la campaña de retención a este cliente en particular?")
     st.caption("Los valores iniciales son la mediana de train (un cliente típico). Marca «Sin dato» si no lo conoces: "
                "el modelo manda el vacío a la rama con más clientes, sin rellenarlo.")
 

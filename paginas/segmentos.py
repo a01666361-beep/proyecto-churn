@@ -15,10 +15,13 @@ import streamlit as st
 
 from src import ayuda
 from src import modelo as M
-from src.config import AZUL, GRIS, LINEA, NARANJA, ROJO, VERDE
+from src.config import AZUL, GRIS, NARANJA, ROJO, VERDE
 from src.contexto import contexto
 from src.puntuacion import modelo_y_puntuacion
 from src.tablas_datos import configuracion_columnas
+from src import acceso
+
+acceso.exigir("paginas/segmentos.py")  # entregable 3: segunda barrera por rol
 
 c = contexto()
 _, puntuado_total = modelo_y_puntuacion()
@@ -59,7 +62,8 @@ with izquierda:
         f"Abandono por segmento: {mayor_seg['Segmento']} con {mayor_seg['Churn histórico (%)']:.1f}%",
         "La tasa de abandono histórica de cada segmento contra la de la selección.",
         "Naranja: el segmento abandona más que la selección (línea punteada); azul: menos.",
-        "Qué segmento atender primero.", nivel="####")
+        "Qué segmento atender primero.", nivel="####",
+        pregunta="¿Qué segmento de clientes abandona más?")
     fig = go.Figure(go.Bar(
         x=perfil["Segmento"], y=perfil["Churn histórico (%)"],
         marker_color=[ROJO if v > tasa_seleccion * 100 else AZUL for v in perfil["Churn histórico (%)"]],
@@ -77,12 +81,13 @@ with derecha:
         "Activos de cada segmento por nivel de riesgo",
         "Qué porcentaje de los clientes activos de cada segmento tiene riesgo alto, medio o bajo según el modelo.",
         "Cada barra suma 100%. La parte naranja son los activos con riesgo alto.",
-        "Dónde está el volumen de clientes que conviene contactar.", nivel="####")
+        "Dónde está el volumen de clientes que conviene contactar.", nivel="####",
+        pregunta="¿En qué segmento está el mayor volumen de clientes que conviene contactar?")
     activos = puntuado[puntuado["Churned"] == 0]
     mezcla = (activos.groupby(["Segmento", "Nivel_Riesgo"]).size().unstack(fill_value=0)
               .reindex(index=perfil["Segmento"], columns=M.NIVELES, fill_value=0))
     porcentaje = mezcla.div(mezcla.sum(axis=1).where(lambda s: s > 0, 1), axis=0) * 100
-    colores = {"Alto": NARANJA, "Medio": AZUL, "Bajo": LINEA}
+    colores = {"Alto": NARANJA, "Medio": AZUL, "Bajo": GRIS}  # antes el color de bordes #343B4A (1.5:1): no pasaba 3:1
     fig = go.Figure()
     for nivel in M.NIVELES:
         fig.add_bar(name=f"Riesgo {nivel.lower()}", x=porcentaje.index, y=porcentaje[nivel],
@@ -94,24 +99,31 @@ with derecha:
     st.caption("Solo clientes activos. Nivel de riesgo: resultado del modelo, no es dato observado.")
 
 # ------------------------------------------------------------------ A quién contactar
-st.markdown("#### Clientes a contactar primero en cada segmento")
-uno, dos = st.columns([1, 2])
-with uno:
-    mayor = int(perfil["Churn histórico (%)"].idxmax())  # empieza por el que más abandona
-    elegido = st.selectbox("Segmento", perfil["Segmento"].tolist(), index=mayor, key="seg_elegido")
-with dos:
-    niveles = st.multiselect("Nivel de riesgo", M.NIVELES, default=["Alto"], placeholder="Todos", key="seg_niveles")
+# Entregable 3: la pantalla la comparten Gerencia y Operaciones, pero la lista con el ID y la probabilidad
+# de cada cliente solo la ve un rol con el permiso "ver_clientes" (Operaciones). Gerencia decide con agregados.
+if not acceso.puede("ver_clientes"):
+    st.markdown("#### Clientes a contactar primero en cada segmento")
+    st.info("La lista de clientes (ID y probabilidad de abandono) solo la ve el rol **Operaciones de datos y CRM**. "
+            "Con las gráficas de arriba decides a qué segmento dirigir la campaña; Operaciones arma la lista.")
+else:
+    st.markdown("#### Clientes a contactar primero en cada segmento")
+    uno, dos = st.columns([1, 2])
+    with uno:
+        mayor = int(perfil["Churn histórico (%)"].idxmax())  # empieza por el que más abandona
+        elegido = st.selectbox("Segmento", perfil["Segmento"].tolist(), index=mayor, key="seg_elegido")
+    with dos:
+        niveles = st.multiselect("Nivel de riesgo", M.NIVELES, default=["Alto"], placeholder="Todos", key="seg_niveles")
 
-tabla = M.tabla_scoring(puntuado[puntuado["Segmento"] == elegido], solo_activos=True, niveles=niveles)
-st.markdown(f"**{len(tabla):,} clientes activos** del segmento **{elegido}**, de mayor a menor probabilidad de abandono.")
-# Retroalimentación 12-nov: la lista queda oculta; se abre o se descarga solo cuando se necesita.
-with st.expander("Ver la lista de clientes del segmento (oculta)"):
-    st.dataframe(
-        tabla, column_order=list(tabla.columns), hide_index=True, width="stretch", height=360,
-        column_config={**configuracion_columnas(tabla),
-                       "Probabilidad de churn (%)": st.column_config.ProgressColumn(
-                           min_value=0, max_value=100, format="%.1f%%",
-                           help="Origen: resultado estimado por el modelo, no es dato observado")})
-st.download_button("Descargar lista del segmento (CSV)", tabla.to_csv(index=False).encode("utf-8-sig"),
-                   file_name=f"clientes_{elegido.lower()}.csv", mime="text/csv", disabled=tabla.empty)
-st.caption("Para ver por qué un cliente tiene ese riesgo, búscalo en la pantalla Clientes prioritarios (Explicación por cliente).")
+    tabla = M.tabla_scoring(puntuado[puntuado["Segmento"] == elegido], solo_activos=True, niveles=niveles)
+    st.markdown(f"**{len(tabla):,} clientes activos** del segmento **{elegido}**, de mayor a menor probabilidad de abandono.")
+    # Retroalimentación 12-nov: la lista queda oculta; se abre o se descarga solo cuando se necesita.
+    with st.expander("Ver la lista de clientes del segmento (oculta)"):
+        st.dataframe(
+            tabla, column_order=list(tabla.columns), hide_index=True, width="stretch", height=360,
+            column_config={**configuracion_columnas(tabla),
+                           "Probabilidad de churn (%)": st.column_config.ProgressColumn(
+                               min_value=0, max_value=100, format="%.1f%%",
+                               help="Origen: resultado estimado por el modelo, no es dato observado")})
+    st.download_button("Descargar lista del segmento (CSV)", tabla.to_csv(index=False).encode("utf-8-sig"),
+                       file_name=f"clientes_{elegido.lower()}.csv", mime="text/csv", disabled=tabla.empty)
+    st.caption("Para ver por qué un cliente tiene ese riesgo, búscalo en la pantalla Clientes prioritarios (Explicación por cliente).")

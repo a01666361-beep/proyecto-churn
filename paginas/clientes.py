@@ -7,31 +7,29 @@ Explicación por cliente (por qué está en riesgo): Víctor García (A01784206)
 """
 import plotly.graph_objects as go
 import streamlit as st
-from scipy.cluster import hierarchy as sch
 
 from src import analisis_clusters as A
 from src import ayuda
 from src import modelo as M
 from src import modelo_gb as G
-from src.config import AZUL, AZUL_CLARO, AZUL_PALIDO, AZUL_TEXTO, GRIS, ROJO, VERDE
+from src.config import AZUL, AZUL_PALIDO, AZUL_TEXTO, GRIS, ROJO, VERDE
 from src.contexto import contexto, obtener_datos
 from src.puntuacion import modelo_y_puntuacion as preparar_modelo  # caché compartida (Víctor)
 from src.tablas_datos import configuracion_columnas
+from src import acceso
+
+acceso.exigir("paginas/clientes.py")  # entregable 3: segunda barrera por rol
 
 
-@st.cache_resource(show_spinner="Calculando la validación de los clusters (solo la primera vez)…")
+@st.cache_resource(show_spinner="Calculando el perfil de los segmentos (solo la primera vez)…")
 def analisis_clusters():
-    """Gráficas del Colab de K-Means con toda la base. Se calcula una sola vez."""
+    """Perfil y prueba ji cuadrada de los segmentos con toda la base. Se calcula una sola vez.
+    Las demás pruebas de validación (codo, índices, estabilidad, Kruskal-Wallis, jerárquico) están en el notebook."""
     df = obtener_datos()
     segmentos = preparar_modelo()[1]["Segmento"]
     return {
-        "indices": A.indices_por_k(df),
-        "estabilidad": A.estabilidad(df),
         "perfil_z": A.perfil_estandarizado(df, segmentos),
-        "proyeccion": A.proyeccion(df, segmentos),
-        "kruskal": A.kruskal(df, segmentos),
         "ji": A.ji_cuadrada(df, segmentos),
-        "jerarquico": A.jerarquico(df, segmentos),
     }
 
 
@@ -61,7 +59,8 @@ with scoring:
         "Cuántos clientes y activos hay en cada nivel de riesgo del modelo y cuánto abandonaron en realidad.",
         f"Alto si la probabilidad es ≥ {M.UMBRAL_ALTO:.0%}, Medio entre {M.UMBRAL_MEDIO:.0%} y {M.UMBRAL_ALTO:.0%}, "
         f"Bajo si es menor a {M.UMBRAL_MEDIO:.0%}. Si el churn histórico baja de Alto a Bajo, el modelo ordena bien.",
-        "Cuántos clientes caben en la campaña y por qué nivel empezar.", nivel="####")
+        "Cuántos clientes caben en la campaña y por qué nivel empezar.", nivel="####",
+        pregunta="¿Cuántos clientes activos están en riesgo alto y por qué nivel conviene empezar la campaña?")
     st.dataframe(niveles_tabla, hide_index=True, use_container_width=True,
                  column_config={"Clientes": st.column_config.NumberColumn(format="localized"),
                                 "Activos": st.column_config.NumberColumn(format="localized")})
@@ -97,7 +96,8 @@ with scoring:
         "Explicación por cliente: las 5 variables que más pesan en su riesgo",
         "Para el cliente elegido, qué variables suben o bajan su probabilidad de abandono frente al cliente promedio.",
         "Naranja sube el riesgo, cian lo baja. El largo de la barra es cuánto cambia su probabilidad si esa variable tuviera el valor típico.",
-        "Qué mensaje o acción usar con ese cliente al contactarlo.", nivel="####")
+        "Qué mensaje o acción usar con ese cliente al contactarlo.", nivel="####",
+        pregunta="¿Por qué este cliente tiene riesgo alto y qué conviene decirle al contactarlo?")
     if tabla.empty:
         st.info("No hay clientes en la tabla con estos filtros.")
     else:
@@ -158,127 +158,29 @@ with segmentos:
         "Perfil promedio de cada segmento",
         "Tamaño, abandono, activos en riesgo alto y promedio de las variables clave de cada segmento.",
         "Compara cada columna entre segmentos: de ahí salen sus nombres (de más a menos activos).",
-        "Qué mensaje y canal usar con cada segmento.", nivel="####")
+        "Qué mensaje y canal usar con cada segmento.", nivel="####",
+        pregunta="¿Qué tan grande es cada segmento y qué comportamiento lo caracteriza?")
     st.dataframe(perfil.drop(columns="Descripción"), hide_index=True, use_container_width=True)
 
     analisis = analisis_clusters()
-    ind = analisis["indices"]
-    k_elegido = M.NUM_SEGMENTOS
 
-    # ---------------------------------------------------------- 1. Número de clusters
-    st.markdown("### 1. Número de clusters: 3 (método del codo)")
+    # Entregable 3: se quitaron del tablero las gráficas de validación técnica del clustering (método del codo,
+    # V de Cramér por k, índices de silueta/Calinski/Davies-Bouldin, proyecciones 2D, estabilidad con otras
+    # semillas, Kruskal-Wallis y dendrograma). Responden preguntas de método, no habilitan una decisión de negocio.
+    # Siguen completas en notebooks/Equipo5_KMeans_Clustering.ipynb.
     izquierda, derecha = st.columns(2, gap="medium")
     with izquierda, st.container(border=True):
+        ji = analisis["ji"]
         ayuda.titulo_grafica(
-            "Método del codo",
-            "Cuánto baja la suma de distancias dentro de los clusters (WCSS) al agregar cada cluster.",
-            "El codo es donde la curva deja de bajar mucho; el punto naranja marca el número elegido.",
-            "Cuántos segmentos usar.", nivel="####")
-        fig = go.Figure(go.Scatter(x=ind["k"], y=ind["WCSS"], mode="lines+markers", line_color=AZUL,
-                                   hovertemplate="k = %{x}<br>WCSS = %{y:,.0f}<extra></extra>"))
-        codo = ind[ind["k"] == k_elegido].iloc[0]
-        fig.add_trace(go.Scatter(x=[k_elegido], y=[codo["WCSS"]], mode="markers", marker=dict(size=14, color=ROJO),
-                                 name=f"k = {k_elegido}", hoverinfo="skip"))
-        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10), showlegend=False,
-                          xaxis_title="Número de clusters", yaxis_title="WCSS", xaxis_dtick=1)
-        st.plotly_chart(fig, use_container_width=True)
-        siguiente = ind[ind["k"] == k_elegido + 1].iloc[0]["Reducción del WCSS (%)"]
-        st.caption(f"De 2 a 3 clusters el WCSS baja {ind[ind['k'] == 3].iloc[0]['Reducción del WCSS (%)']:.1f}%; "
-                   f"de {k_elegido} a {k_elegido + 1} solo {siguiente:.1f}%. Ahí está el codo.")
-    with derecha, st.container(border=True):
-        ayuda.titulo_grafica(
-            "Relación de cada agrupamiento con el churn (V de Cramér)",
-            "Qué tanto separa el abandono cada número de clusters.",
-            "De 0 (no separa) a 1 (separa perfecto). La barra naranja es el número elegido.",
-            "Si los segmentos sirven para priorizar la retención.", nivel="####")
-        v = ind.dropna(subset=["V de Cramér"])
-        fig = go.Figure(go.Bar(x=v["k"], y=v["V de Cramér"],
-                               marker_color=[ROJO if k == k_elegido else AZUL_CLARO for k in v["k"]],
-                               text=v["V de Cramér"].round(3), textposition="outside",
-                               hovertemplate="k = %{x}<br>V = %{y:.3f}<extra></extra>"))
-        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10), xaxis_title="Número de clusters",
-                          yaxis_title="V de Cramér", xaxis_dtick=1, yaxis_range=[0, v["V de Cramér"].max() * 1.2])
-        st.plotly_chart(fig, use_container_width=True)
-        st.caption("Qué tanto separa el churn cada número de clusters (0 = nada, 1 = perfecto). "
-                   "El churn no se usa para formar los grupos, solo para evaluarlos.")
-
-    with st.container(border=True):
-        ayuda.titulo_grafica(
-            "Índices de validación",
-            "Silueta, Calinski-Harabasz y Davies-Bouldin para 2 a 10 clusters.",
-            "Silueta y Calinski-Harabasz: mayor es mejor. Davies-Bouldin: menor es mejor. La línea naranja marca el número elegido.",
-            "Comprobar estadísticamente el número de clusters.", nivel="####")
-        cols = st.columns(3, gap="small")
-        for col, (nombre, mejor) in zip(cols, [("Silueta", "mayor es mejor"), ("Calinski-Harabasz", "mayor es mejor"),
-                                               ("Davies-Bouldin", "menor es mejor")]):
-            with col:
-                fig = go.Figure(go.Scatter(x=v["k"], y=v[nombre], mode="lines+markers", line_color=AZUL,
-                                           hovertemplate="k = %{x}<br>%{y:.3f}<extra></extra>"))
-                fig.add_vline(x=k_elegido, line_color=ROJO, line_dash="dash")
-                fig.update_layout(height=240, margin=dict(l=10, r=10, t=30, b=10), xaxis_dtick=1,
-                                  title=dict(text=f"{nombre} ({mejor})", font_size=13), xaxis_title="k")
-                st.plotly_chart(fig, use_container_width=True)
-        st.caption("Los tres índices son mejores con 3 clusters que con cualquier número mayor. Con 2 son aún mejores, "
-                   "pero 2 clusters casi no separan el churn (V = 0.151). Las siluetas son bajas en general: los "
-                   "clientes forman un continuo de más a menos activos, no grupos muy separados.")
-
-    # ---------------------------------------------------------- 2. Perfil y visualización
-    st.markdown("### 2. Perfil y visualización de los clusters")
-    with st.container(border=True):
-        ayuda.titulo_grafica(
-            "Perfil de cada cluster (desviaciones estándar vs. el promedio)",
-            "En qué variables cada cluster está arriba o abajo del promedio de la base.",
-            "Rojo: arriba del promedio; azul: abajo. 0 = igual al promedio.",
-            "Qué comportamiento distingue a cada segmento.", nivel="####")
-        pz = analisis["perfil_z"]
-        fig = go.Figure(go.Heatmap(z=pz.values, x=pz.columns, y=pz.index, zmin=-1.5, zmax=1.5, colorscale="RdBu_r",
-                                   text=pz.round(1).values, texttemplate="%{text}",
-                                   colorbar=dict(title="DE"),
-                                   hovertemplate="%{y} · %{x}: %{z:.2f} DE<extra></extra>"))
-        fig.update_layout(height=280, margin=dict(l=10, r=10, t=10, b=10), yaxis_autorange="reversed")
-        st.plotly_chart(fig, use_container_width=True)
-        st.caption("Rojo: arriba del promedio · azul: abajo. Los días sin comprar y el uso de descuentos casi no "
-                   "cambian entre clusters.")
-
-    proy = analisis["proyeccion"]
-    izquierda, derecha = st.columns(2, gap="medium")
-    for columna, (x, y, centros, titulo, ex, ey) in zip(
-            [izquierda, derecha],
-            [("Login_Frequency", "Cart_Abandonment_Rate", proy["centros"], "Clusters de clientes",
-              "Inicios de sesión", "Carrito abandonado (%)"),
-             ("PC1", "PC2", proy["centros_pca"],
-              f"Clusters en 2D con PCA ({proy['varianza_pca']:.0%} de la varianza)", "Componente 1", "Componente 2")]):
-        with columna, st.container(border=True):
-            ayuda.titulo_grafica(
-                titulo,
-                "Una muestra de 3,000 clientes coloreada por cluster, con el centroide (promedio) de cada uno en amarillo.",
-                "Si los colores forman zonas separadas, los clusters se distinguen; si se mezclan, la frontera es difusa.",
-                "Confirmar visualmente que los segmentos tienen sentido.", nivel="####")
-            fig = go.Figure()
-            for nombre in M.NOMBRES_SEGMENTO:
-                pts = proy["puntos"][proy["puntos"]["Segmento"] == nombre]
-                fig.add_trace(go.Scatter(x=pts[x], y=pts[y], mode="markers", name=nombre,
-                                         marker=dict(size=5, color=COLOR_SEGMENTO.get(nombre, AZUL), opacity=0.45)))
-            fig.add_trace(go.Scatter(x=centros[x], y=centros[y], mode="markers", name="Centroides",
-                                     marker=dict(size=18, color="yellow", line=dict(color="black", width=1.5)),
-                                     text=centros["Segmento"], hovertemplate="Centroide %{text}<extra></extra>"))
-            fig.update_layout(height=380, margin=dict(l=10, r=10, t=10, b=10), xaxis_title=ex, yaxis_title=ey,
-                              legend=dict(orientation="h", y=-0.25))
-            st.plotly_chart(fig, use_container_width=True)
-            st.caption("Muestra de 3,000 clientes. Los centroides (amarillo) son el promedio de cada cluster.")
-
-    # ---------------------------------------------------------- 3. Validación estadística
-    st.markdown("### 3. Validación estadística")
-    ji = analisis["ji"]
-    izquierda, derecha = st.columns(2, gap="medium")
-    with izquierda, st.container(border=True):
-        ayuda.titulo_grafica(
-            "Churn por cluster (prueba ji cuadrada)",
-            "La tasa de abandono de cada cluster y si la diferencia es estadísticamente significativa.",
-            "La línea punteada es el churn general. Si p < 0.05, el abandono depende del cluster.",
-            "A qué segmento dirigir primero la retención.", nivel="####")
+            "Churn por segmento (prueba ji cuadrada)",
+            "La tasa de abandono de cada segmento y si la diferencia es estadísticamente significativa.",
+            "La línea punteada es el churn general. Cada barra tiene su porcentaje escrito. Si p < 0.05, "
+            "el abandono depende del segmento.",
+            "A qué segmento dirigir primero la retención.", nivel="####",
+            pregunta="¿Qué segmento abandona más, y la diferencia es real o casualidad?")
         churn = ji["churn"]
-        fig = go.Figure(go.Bar(x=churn.index, y=churn.values, marker_color=[COLOR_SEGMENTO.get(n, AZUL) for n in churn.index],
+        fig = go.Figure(go.Bar(x=churn.index, y=churn.values,
+                               marker_color=[COLOR_SEGMENTO.get(n, AZUL) for n in churn.index],
                                text=[f"{c:.1f}%" for c in churn.values], textposition="outside",
                                hovertemplate="%{x}: %{y:.1f}%<extra></extra>"))
         fig.add_hline(y=c.tasa_global * 100, line_dash="dash", line_color=AZUL_TEXTO,
@@ -287,66 +189,26 @@ with segmentos:
                           yaxis_range=[0, churn.max() * 1.25])
         st.plotly_chart(fig, use_container_width=True)
         st.caption(f"Ji cuadrada = {ji['chi2']:,.1f}, gl = {ji['gl']}, p < 0.001, V de Cramér = {ji['v_cramer']:.3f}. "
-                   "El churn depende del cluster (relación moderada).")
+                   "El churn depende del segmento (relación moderada).")
     with derecha, st.container(border=True):
         ayuda.titulo_grafica(
-            "Estabilidad (otras semillas de K-Means)",
-            "Si los clusters cambian al entrenar K-Means con otro punto de inicio.",
-            "ARI de 1 = los mismos grupos; 0 = coincidencia al azar.",
-            "Confiar en que los segmentos no son casualidad.", nivel="####")
-        est = analisis["estabilidad"]
-        fig = go.Figure(go.Bar(x=est["Semilla"].astype(str), y=est["ARI vs modelo final"], marker_color=AZUL,
-                               text=est["ARI vs modelo final"].round(3), textposition="outside",
-                               hovertemplate="Semilla %{x}: ARI %{y:.3f}<extra></extra>"))
-        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10), yaxis_range=[0, 1.1],
-                          xaxis_title="Semilla", yaxis_title="ARI", xaxis_type="category")
+            "Perfil de cada segmento (desviaciones estándar vs. el promedio)",
+            "En qué variables cada segmento está arriba o abajo del promedio de la base.",
+            "Cada celda tiene su valor escrito: positivo = arriba del promedio, negativo = abajo, 0 = igual.",
+            "Qué mensaje y qué acción usar con cada segmento.", nivel="####",
+            pregunta="¿En qué comportamiento se diferencia cada segmento del cliente promedio?")
+        pz = analisis["perfil_z"]
+        fig = go.Figure(go.Heatmap(z=pz.values, x=pz.columns, y=pz.index, zmin=-1.5, zmax=1.5, colorscale="RdBu_r",
+                                   text=pz.round(1).values, texttemplate="%{text}",
+                                   colorbar=dict(title="DE"),
+                                   hovertemplate="%{y} · %{x}: %{z:.2f} DE<extra></extra>"))
+        fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10), yaxis_autorange="reversed")
         st.plotly_chart(fig, use_container_width=True)
-        st.caption("ARI de 1 = los mismos grupos. Los clusters casi no cambian con otro punto de inicio.")
+        st.caption("Los días sin comprar y el uso de descuentos casi no cambian entre segmentos.")
 
-    with st.container(border=True):
-        ayuda.titulo_grafica(
-            "Diferencia de cada variable entre clusters (Kruskal-Wallis)",
-            "El tamaño del efecto de cada variable para distinguir a los clusters.",
-            "Barra larga = la variable separa mucho a los clusters. < 0.01 despreciable, > 0.26 grande.",
-            "Qué variables definen a los segmentos.", nivel="####")
-        kw = analisis["kruskal"]
-        fig = go.Figure(go.Bar(x=kw["Épsilon²"][::-1], y=kw["Variable"][::-1], orientation="h",
-                               marker_color=[AZUL if e >= 0.08 else AZUL_CLARO for e in kw["Épsilon²"][::-1]],
-                               text=kw["Efecto"][::-1], textposition="outside",
-                               hovertemplate="%{y}: épsilon² %{x:.3f}<extra></extra>"))
-        fig.update_layout(height=380, margin=dict(l=10, r=60, t=10, b=10), xaxis_title="Tamaño del efecto (épsilon²)",
-                          xaxis_range=[0, kw["Épsilon²"].max() * 1.25])
-        st.plotly_chart(fig, use_container_width=True)
-        tabla_kw = kw.assign(**{"p-value": kw["p-value"].map(lambda p: "< 0.001" if p < 0.001 else f"{p:.3f}"),
-                                "H": kw["H"].round(1), "Épsilon²": kw["Épsilon²"].round(3)})
-        with st.expander("Ver tabla de la prueba"):
-            st.dataframe(tabla_kw, hide_index=True, use_container_width=True)
-        st.caption("H0: la variable es igual en todos los clusters. Con 50,000 clientes casi todo sale significativo, "
-                   "por eso se mira el tamaño del efecto: < 0.01 despreciable, 0.01 a 0.08 pequeño, 0.08 a 0.26 "
-                   "moderado, > 0.26 grande.")
-
-    with st.container(border=True):
-        jer = analisis["jerarquico"]
-        ayuda.titulo_grafica(
-            "Comparación con cluster jerárquico (dendrograma, método de Ward)",
-            "Cómo se agrupan 2,000 clientes con otro método de clustering.",
-            "Cada unión es una fusión de grupos; la línea naranja corta en el número de clusters elegido.",
-            "Validar los segmentos con un segundo método.", nivel="####")
-        d = sch.dendrogram(jer["enlace"], no_plot=True)
-        xs, ys = [], []
-        for xi, yi in zip(d["icoord"], d["dcoord"]):
-            xs += xi + [None]
-            ys += yi + [None]
-        fig = go.Figure(go.Scatter(x=xs, y=ys, mode="lines", line=dict(color=AZUL, width=1), hoverinfo="skip"))
-        fig.add_hline(y=jer["corte"], line_dash="dash", line_color=ROJO,
-                      annotation_text=f"Corte en {M.NUM_SEGMENTOS} grupos", annotation_position="top right")
-        fig.update_layout(height=340, margin=dict(l=10, r=10, t=10, b=10), xaxis_visible=False,
-                          yaxis_title="Distancia euclidiana")
-        st.plotly_chart(fig, use_container_width=True)
-        st.caption(f"Muestra de 2,000 clientes. El jerárquico con {M.NUM_SEGMENTOS} grupos coincide moderadamente con "
-                   f"K-Means (ARI = {jer['ari']:.3f}): la frontera entre grupos no es nítida.")
-
-    st.caption("Análisis completo y comentado en notebooks/Equipo5_KMeans_Clustering.ipynb.")
+    st.caption("La elección de 3 segmentos se validó con el método del codo, índices de silueta, Calinski-Harabasz y "
+               "Davies-Bouldin, estabilidad con otras semillas, Kruskal-Wallis y un cluster jerárquico. Esas pruebas "
+               "están completas en notebooks/Equipo5_KMeans_Clustering.ipynb.")
 
 # ================================================================== Modelo
 with modelo_tab:
@@ -372,7 +234,8 @@ with modelo_tab:
             "Cuántos clientes del conjunto de prueba clasificó bien y mal el modelo.",
             "Filas = lo que pasó; columnas = lo que predijo. Falsos negativos = clientes que se fueron sin ser "
             "detectados; falsos positivos = contactos a clientes que se iban a quedar.",
-            "Si el balance entre clientes detectados y contactos de más es aceptable.", nivel="####")
+            "Si el balance entre clientes detectados y contactos de más es aceptable.", nivel="####",
+            pregunta="¿Cuántos abandonos detecta el modelo y a cuántos clientes contactaríamos de más?")
         fig = go.Figure(go.Heatmap(
             z=[[mt["VN"], mt["FP"]], [mt["FN"], mt["VP"]]],
             x=["Predice: se queda", "Predice: abandona"], y=["Real: se queda", "Real: abandona"],
@@ -399,7 +262,8 @@ with modelo_tab:
         f"Variable con más influencia: {imp.iloc[0]['Variable']}",
         "Cuánto baja el AUC del modelo si se revuelve cada variable (importancia por permutación en test).",
         "Barra más larga = el modelo depende más de esa variable. No indica si sube o baja el riesgo.",
-        "Qué comportamientos atacar con las acciones de retención.", nivel="####")
+        "Qué comportamientos atacar con las acciones de retención.", nivel="####",
+        pregunta="¿Qué comportamientos pesan más en el riesgo que calcula el modelo?")
     fig = go.Figure(go.Bar(
         x=imp["Baja del AUC"][::-1], y=imp["Variable"][::-1], orientation="h", marker_color=AZUL,
         text=[f"{v:.3f}" for v in imp["Baja del AUC"][::-1]], textposition="outside",

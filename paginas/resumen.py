@@ -9,6 +9,9 @@ from src import ayuda
 
 from src.contexto import contexto
 from src.resumen import DIAS_REACTIVAR, factores, segmento_critico, situacion, valor_alto
+from src import acceso
+
+acceso.exigir("paginas/resumen.py")  # entregable 3: segunda barrera por rol
 
 c = contexto()
 df, df_general, regla = c.df_filtrado, c.df, c.regla
@@ -42,7 +45,8 @@ ayuda.titulo_grafica(
     "Qué está relacionado con el abandono",
     "La tasa de abandono de seis grupos de clientes, comparada con la del resto.",
     "Cada número grande es el porcentaje de clientes de ese grupo que abandonó; debajo está la comparación.",
-    "Qué señales usar para decidir a quién contactar.")
+    "Qué señales usar para decidir a quién contactar.",
+    pregunta="¿Qué comportamientos están más relacionados con el abandono?")
 f = factores(df, regla)
 seg = segmento_critico(df)
 va = valor_alto(df, df_general)
@@ -78,14 +82,26 @@ st.caption("Los porcentajes son tasas de churn históricas de cada grupo y cambi
 # ------------------------------------------------------------------ Guía
 with st.container(border=True):
     st.markdown("### Pantallas del dashboard")
-    st.markdown("""
-| Bloque del menú | Pantalla | Para quién | Qué decisión habilita |
-|---|---|---|---|
-| Análisis por usuario | **Andrea · Priorizar campañas** | Andrea López, gerente de retención | A qué segmentos dirigir la campaña de retención |
-| Análisis por usuario | **Luis · Monitoreo y calidad** | Luis Ramírez, operaciones de datos y CRM | Si hay alertas del modelo, si los datos son confiables y quién entra a la lista de campaña |
-| Análisis por usuario | **Carlos · Valor y presupuesto** | Carlos Mendoza, estrategia y valor | Si se están yendo los clientes valiosos y dónde conviene invertir |
-| Modelo predictivo | **Clientes prioritarios** | Andrea y Luis | A qué clientes contactar primero según su probabilidad de abandono y su segmento |
-| Plan de acción | **Recomendaciones** | Todo el equipo | Qué acciones tomar primero y cómo medir si funcionaron |
-| Modelo predictivo | **Segmentos** | Andrea y Carlos | Qué tipo de cliente se va más y a quién de cada segmento contactar primero |
-""")
+    # Entregable 3: la tabla solo lista las pantallas que el rol puede abrir.
+    filas = [
+        ("paginas/andrea.py", "Análisis por usuario", "Andrea López, gerente de retención",
+         "A qué segmentos dirigir la campaña de retención"),
+        ("paginas/luis.py", "Análisis por usuario", "Luis Ramírez, operaciones de datos y CRM",
+         "Si hay alertas del modelo, si los datos son confiables y quién entra a la lista de campaña"),
+        ("paginas/carlos.py", "Análisis por usuario", "Carlos Mendoza, estrategia y valor",
+         "Si se están yendo los clientes valiosos y dónde conviene invertir"),
+        ("paginas/clientes.py", "Modelo predictivo", "Luis (operaciones)",
+         "A qué clientes contactar primero según su probabilidad de abandono y su segmento"),
+        ("paginas/segmentos.py", "Modelo predictivo", "Andrea y Carlos (gráficas); Luis (lista de clientes)",
+         "Qué tipo de cliente se va más y a quién de cada segmento contactar primero"),
+        ("paginas/modelos.py", "Modelo predictivo", "Andrea, Luis y Carlos",
+         "Con qué modelo puntuar y si a un cliente concreto se le manda la campaña"),
+        ("paginas/recomendaciones.py", "Plan de acción", "Todo el equipo",
+         "Qué acciones tomar primero y cómo medir si funcionaron"),
+    ]
+    permitidas = acceso.pantallas_de(acceso.rol_actual())
+    tabla = ["| Bloque del menú | Pantalla | Para quién | Qué decisión habilita |", "|---|---|---|---|"]
+    tabla += [f"| {bloque} | **{acceso.PANTALLAS[archivo]}** | {quien} | {decision} |"
+              for archivo, bloque, quien, decision in filas if archivo in permitidas]
+    st.markdown("\n".join(tabla))
     st.caption("Los filtros de la derecha aplican a todas las pantallas y se conservan al cambiar de una a otra.")
