@@ -24,7 +24,8 @@ CSS = """
 
 :root {
   --cp-fondo: #1A1D24; --cp-fondo-2: #222733; --cp-tarjeta: #293545; --cp-pista: #1F2733;
-  --cp-azul: #007BFF; --cp-azul-oscuro: #0062CC; --cp-azul-texto: #4DA3FF;
+  --cp-azul: #007BFF; --cp-azul-texto: #4DA3FF;
+  --cp-boton: #0066D6; --cp-boton-hover: #0056B3;
   --cp-naranja: #FFA03A; --cp-cian: #3FD8E0;
   --cp-texto: #FFFFFF; --cp-texto-suave: #B0B7C3; --cp-linea: #343B4A;
 }
@@ -57,6 +58,8 @@ h2.seccion-titulo {font-size: 1.25rem; font-weight: 600; margin: 1rem 0 0; paddi
   border-left: 4px solid var(--cp-azul);}
 div[class*="st-key-grafica_"] {padding: 1rem; background: var(--cp-fondo); border: 1px solid var(--cp-linea); border-radius: 4px;}
 div[class*="st-key-grafica_"] h3 {font-size: 1.05rem; font-weight: 500; line-height: 1.45; min-height: 3rem; padding: 0; color: var(--cp-texto);}
+p.sesion-rol {font-size: 0.8rem; color: var(--cp-texto-suave); margin: 0 0 0.3rem;}
+p.pregunta-grafica {font-size: 0.88rem; line-height: 1.4; color: var(--cp-cian); margin: 0.1rem 0 0.4rem;}
 p.subtitulo {font-size: 0.82rem; color: var(--cp-texto-suave); margin: 0;}
 
 /* ---------- Tarjetas KPI (azul marino, número azul brillante) ---------- */
@@ -72,15 +75,16 @@ p.subtitulo {font-size: 0.82rem; color: var(--cp-texto-suave); margin: 0;}
 .kpi-rojo     {border-top: 4px solid var(--cp-naranja);}
 .kpi-label {font-size: 0.95rem; font-weight: 700; color: #FFFFFF; min-height: 2.3rem;}
 .kpi-valor {font-size: 2.4rem; font-weight: 400; line-height: 1; color: var(--cp-azul);}
+/* chips: fondo translúcido calculado sobre la tarjeta; tests/test_contraste.py revisa que el texto pase 4.5:1 */
 .kpi-chip {display: inline-block; font-size: 0.78rem; font-weight: 700; padding: 2px 10px; border-radius: 99px; width: fit-content;}
-.chip-rojo    {background: rgba(255,160,58,0.18); color: var(--cp-naranja);}
+.chip-rojo    {background: rgba(255,160,58,0.12); color: var(--cp-naranja);}
 .chip-verde   {background: rgba(63,216,224,0.16);  color: var(--cp-cian);}
-.chip-azul    {background: rgba(0,123,255,0.20);  color: var(--cp-azul-texto);}
-.chip-celeste {background: rgba(0,123,255,0.20);  color: var(--cp-azul-texto);}
-.chip-ambar   {background: rgba(255,160,58,0.18);  color: var(--cp-naranja);}
-.chip-naranja {background: rgba(255,160,58,0.18);  color: var(--cp-naranja);}
-.chip-arena   {background: rgba(255,160,58,0.14);  color: var(--cp-naranja);}
-.chip-gris    {background: rgba(176,183,195,0.16); color: var(--cp-texto-suave);}
+.chip-azul    {background: rgba(0,123,255,0.20);  color: var(--cp-texto);}
+.chip-celeste {background: rgba(0,123,255,0.20);  color: var(--cp-texto);}
+.chip-ambar   {background: rgba(255,160,58,0.12);  color: var(--cp-naranja);}
+.chip-naranja {background: rgba(255,160,58,0.12);  color: var(--cp-naranja);}
+.chip-arena   {background: rgba(255,160,58,0.12);  color: var(--cp-naranja);}
+.chip-gris    {background: rgba(176,183,195,0.12); color: var(--cp-texto-suave);}
 .kpi-sub {font-size: 0.84rem; color: var(--cp-texto-suave);}
 .kpi-referencia {font-size: 0.8rem; line-height: 1.4; color: var(--cp-texto-suave); border-top: 1px solid var(--cp-linea); padding-top: 6px; margin-top: 2px;}
 .kpi-barra {position: relative; height: 8px; border-radius: 2px; background: var(--cp-pista); margin-top: 2px;}
@@ -121,8 +125,9 @@ div[data-testid="stMetricValue"] {color: var(--cp-azul); font-weight: 400;}
 .stTabs [data-baseweb="tab-border"] {background: var(--cp-linea);}
 div[data-testid="stExpander"] details {border-color: var(--cp-linea); border-radius: 4px;}
 div[data-testid="stExpander"] summary p {font-weight: 700;}
-.stApp button[kind="primary"] {background: var(--cp-azul); border-color: var(--cp-azul); color: #FFFFFF;}
-.stApp button[kind="primary"]:hover {background: var(--cp-azul-oscuro); border-color: var(--cp-azul-oscuro);}
+/* botones principales: #0066D6 y no #007BFF, para que el texto blanco pase WCAG AA (5.4:1) */
+.stApp button[kind="primary"], .stApp button[kind="primaryFormSubmit"] {background: var(--cp-boton); border-color: var(--cp-boton); color: #FFFFFF;}
+.stApp button[kind="primary"]:hover, .stApp button[kind="primaryFormSubmit"]:hover {background: var(--cp-boton-hover); border-color: var(--cp-boton-hover);}
 
 /* ---------- Panel de filtros (grafito, cajas con línea abajo) ---------- */
 .st-key-filtros {background: var(--cp-fondo); border: 1px solid var(--cp-linea); border-radius: 4px; padding: 1rem; color: var(--cp-texto);}
@@ -150,7 +155,7 @@ div[data-testid="stExpander"] summary p {font-weight: 700;}
 /* botón Limpiar filtros */
 .st-key-filtros button {background: var(--cp-fondo-2); border: 1px solid var(--cp-linea); color: var(--cp-texto);}
 .st-key-filtros button p {font-size: 0.8rem !important; font-weight: 700; color: inherit !important;}
-.st-key-filtros button:hover, .st-key-filtros button:focus:not(:active) {background: var(--cp-azul); border-color: var(--cp-azul); color: #FFFFFF;}
+.st-key-filtros button:hover, .st-key-filtros button:focus:not(:active) {background: var(--cp-boton); border-color: var(--cp-boton); color: #FFFFFF;}
 
 /* ---------- Responsivo ---------- */
 @media (max-width: 700px) {.grupo-columnas {grid-template-columns: 1fr;}}

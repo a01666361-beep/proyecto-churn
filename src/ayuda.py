@@ -7,6 +7,8 @@ RESPONSABLE: Sara Rivero
 Nota: Streamlit no detecta el doble clic sobre una gráfica (Plotly usa el doble clic para regresar el zoom),
 así que la explicación se abre con un clic en el botón "ⓘ" que está junto al título de cada gráfica.
 """
+from html import escape
+
 import streamlit as st
 
 FILTROS = ("Los filtros del panel derecho (país, género y edad) se aplican a todas las pantallas y se "
@@ -52,7 +54,7 @@ GUIAS = {
     "clientes": {
         "para": "Decidir a qué clientes contactar primero, según su probabilidad de abandono y su segmento.",
         "pasos": ["En **Scoring de clientes** revisa cuántos activos hay en cada nivel de riesgo y descarga la lista.",
-                  "En **Segmentos** consulta los 3 grupos de comportamiento y su validación estadística.",
+                  "En **Segmentos** consulta los 3 grupos de comportamiento, su abandono y su perfil.",
                   "En **Modelo y variables** revisa qué tan bueno es el modelo y qué variables pesan más."],
         "indicadores": "Riesgo Alto ≥ 70% de probabilidad del Gradient Boosting, Medio de 40% a 70%, Bajo menos de 40%. Las métricas del "
                        "modelo usan toda la base y no cambian con los filtros.",
@@ -118,13 +120,20 @@ def titulo_pantalla(titulo, clave, subtitulo):
     st.caption(subtitulo)
 
 
-def titulo_grafica(texto, que_muestra, como_leer, decision, nivel="###"):
-    """Título de una gráfica con el botón "ⓘ" que explica lo que enseña."""
+def titulo_grafica(texto, que_muestra, como_leer, decision, nivel="###", *, pregunta):
+    """Título de una gráfica con la pregunta que responde y el botón "ⓘ" que explica lo que enseña.
+
+    `pregunta` es obligatoria (entregable 3): una gráfica sin pregunta no habilita ninguna decisión.
+    Se muestra siempre debajo del título, no solo dentro del botón. tests/test_preguntas_graficas.py
+    revisa que todas las llamadas la tengan y que esté escrita como pregunta (¿...?).
+    """
     izquierda, derecha = st.columns([6, 1], vertical_alignment="center")
     with izquierda:
         st.markdown(f"{nivel} {texto}" if nivel else texto)
+        st.markdown(f'<p class="pregunta-grafica"><b>Pregunta:</b> {escape(pregunta)}</p>', unsafe_allow_html=True)
     with derecha:
         with st.popover("ⓘ", help="Qué enseña esta gráfica", use_container_width=True):
+            st.markdown(f"**Pregunta que responde:** {pregunta}")
             st.markdown(f"**Qué enseña:** {que_muestra}")
             st.markdown(f"**Cómo leerla:** {como_leer}")
             st.markdown(f"**Decisión que apoya:** {decision}")
