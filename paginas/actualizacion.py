@@ -28,6 +28,9 @@ from src.contexto import obtener_datos
 from src.contrato_datos import ErrorContrato
 from src.limpieza import cargar_datos
 from src.puntuacion import modelo_y_puntuacion
+from src import acceso
+
+acceso.exigir("paginas/actualizacion.py")  # entregable 3: segunda barrera por rol
 
 TOLERANCIA_AUC = 0.03          # si el AUC baja más que esto contra la referencia, se recomienda reentrenar
 TOLERANCIA_MEDIA = 0.10        # cambio relativo en el promedio de una variable que se marca para revisar
@@ -147,7 +150,8 @@ ayuda.titulo_grafica(
     "Cambios en los datos frente a la base actual",
     "Promedio de las variables clave en el archivo nuevo contra la base actual.",
     f"Una variable se marca para revisar si su promedio cambia más de {TOLERANCIA_MEDIA:.0%}.",
-    "Si los clientes nuevos se parecen a los del entrenamiento o si conviene reentrenar.", nivel="####")
+    "Si los clientes nuevos se parecen a los del entrenamiento o si conviene reentrenar.", nivel="####",
+    pregunta="¿Los clientes nuevos se parecen a los que se usaron para entrenar el modelo, o conviene reentrenarlo?")
 filas = []
 for col in VARIABLES_VIGILADAS:
     actual, nuevo_prom = base[col].mean(), nuevo[col].mean()

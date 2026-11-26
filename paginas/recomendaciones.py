@@ -9,6 +9,9 @@ from src import ayuda
 
 from src.contexto import contexto
 from src.resumen import recomendaciones, tabla_recomendaciones
+from src import acceso
+
+acceso.exigir("paginas/recomendaciones.py")  # entregable 3: segunda barrera por rol
 
 c = contexto()
 df, df_general, regla = c.df_filtrado, c.df, c.regla
@@ -28,7 +31,8 @@ with st.container(border=True):
         "Prioridades",
         "Las acciones ordenadas por prioridad y a cuántos clientes activos aplica cada una.",
         "La prioridad 1 es por donde conviene empezar. Los activos de cada fila no se suman.",
-        "Qué acción lanzar primero.")
+        "Qué acción lanzar primero.",
+        pregunta="¿Qué acción de retención conviene lanzar primero?")
     st.dataframe(tabla_recomendaciones(lista), hide_index=True, use_container_width=True,
                  column_config={"Activos a contactar": st.column_config.NumberColumn(format="localized")})
     st.caption("Un mismo cliente puede estar en varios grupos, así que los activos de cada fila no se suman. "

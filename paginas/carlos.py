@@ -11,6 +11,9 @@ from src import ayuda
 from src.config import AZUL, ROJO, VERDE
 from src.contexto import contexto
 from src.vistas import cuartiles_ltv, escenario, resumen_carlos, valor_por_pais
+from src import acceso
+
+acceso.exigir("paginas/carlos.py")  # entregable 3: segunda barrera por rol
 
 c = contexto()
 df, df_general, regla, tasa_global = c.df_filtrado, c.df, c.regla, c.tasa_global
@@ -61,7 +64,8 @@ with izquierda:
             f"Abandono por cuartil de valor: Q4 {q4['tasa']:.1%} vs. negocio {tasa_global:.1%}",
             "La tasa de abandono de cada cuartil de Lifetime_Value, de menor (Q1) a mayor valor (Q4).",
             "Barras naranjas: el cuartil abandona más que el negocio; cian: menos. La línea punteada es el churn global.",
-            "Si hay que proteger primero a los clientes de mayor valor.")
+            "Si hay que proteger primero a los clientes de mayor valor.",
+            pregunta="¿Se están yendo más los clientes de mayor valor que el resto?")
         barras = go.Figure(go.Bar(
             x=cuartiles["cuartil"].astype(str), y=cuartiles["tasa"] * 100,
             marker_color=[ROJO if t > tasa_global else VERDE for t in cuartiles["tasa"]],
@@ -83,7 +87,8 @@ with derecha:
             "Segmentos de valor por país",
             "Por país: clientes, churn, mediana de Lifetime_Value y activos en perfil de riesgo.",
             "Ordenado por churn. La mediana LTV está en escala logarítmica, no es dinero.",
-            "En qué países conviene concentrar la inversión en retención.")
+            "En qué países conviene concentrar la inversión en retención.",
+            pregunta="¿En qué países se concentran los clientes valiosos en riesgo?")
         paises = valor_por_pais(df, regla)
         st.dataframe(paises, column_order=list(paises.columns), hide_index=True, use_container_width=True, height=330, column_config={
             "Churn": st.column_config.ProgressColumn(format="percent", min_value=0, max_value=1),
@@ -103,7 +108,8 @@ with izquierda:
             "Escenario de mejora del churn",
             "SIMULACIÓN: cuántos clientes se retendrían si el churn bajara los puntos elegidos.",
             "Es aritmética (clientes × reducción supuesta), no un pronóstico del efecto de una campaña.",
-            "Dimensionar el beneficio potencial antes de pedir presupuesto.")
+            "Dimensionar el beneficio potencial antes de pedir presupuesto.",
+            pregunta="¿Cuántos clientes se retendrían si el abandono bajara lo que supone el escenario?")
         puntos = st.slider("Reducción hipotética (puntos porcentuales)", 0.5, 5.0, 1.0, 0.5, key="c_puntos")
         alto_valor = cuartiles.iloc[-1]
         st.metric("SIMULACIÓN · Clientes que se retendrían", f"{escenario(r['clientes'], puntos):,}")

@@ -11,6 +11,9 @@ from src import agente as A
 from src import ayuda
 from src.contexto import contexto
 from src.puntuacion import modelo_y_puntuacion
+from src import acceso
+
+acceso.exigir("paginas/asistente.py")  # entregable 3: segunda barrera por rol
 
 c = contexto()
 resultado, puntuado_total = modelo_y_puntuacion()
