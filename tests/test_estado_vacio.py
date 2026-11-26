@@ -10,7 +10,7 @@ from src.limpieza import cargar_datos
 
 # Pantallas que dependen de los filtros y el texto que dibujan solo si hay clientes
 PANTALLAS = {
-    "andrea.py": "Peso de este grupo en el problema",
+    "andrea.py": "Tasa de abandono",  # primer KPI: debe quedar después del st.stop()
     "luis.py": "Alertas del modelo",
     "carlos.py": "Abandono por cuartil de valor",
     "clientes.py": "Riesgo alto:",

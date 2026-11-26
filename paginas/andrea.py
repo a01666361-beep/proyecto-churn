@@ -26,16 +26,16 @@ ayuda.titulo_pantalla("Panorama para priorizar campañas", "andrea",
                       "Concentración del abandono por segmento y por perfil de riesgo · "
                       f"{len(df):,} de {len(df_general):,} clientes en el grupo seleccionado")
 
+if df.empty:  # entregable 3: se detiene antes de calcular o dibujar los KPI
+    st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
+    st.stop()
+
 # Dos KPI: tasa de abandono y activos en perfil de riesgo (se quitó la tarjeta de clientes por retroalimentación)
 k1, k2 = st.columns(2, gap="medium")
 with k1:
     seccion_kpis.tarjeta_churn(df, tasa_global, df_general)
 with k2:
     seccion_kpis.tarjeta_riesgo(df, regla, df_general)
-
-if df.empty:
-    st.info("No hay clientes con esta combinación de filtros. Usa **Limpiar filtros**.")
-    st.stop()
 
 # Retroalimentación 12-nov: el peso del grupo seleccionado en el problema sube junto a los KPI.
 seccion_grupo.mostrar(df, df_general, regla, {

@@ -179,7 +179,7 @@ Así, el ojo encuentra primero el número que decide y después lo que lo explic
 | Pantalla | Dónde está el `st.stop()` |
 |---|---|
 | Resumen general | `paginas/resumen.py:25` |
-| Andrea · Priorizar campañas | `paginas/andrea.py:38` |
+| Andrea · Priorizar campañas | `paginas/andrea.py:31` (antes de los KPI) |
 | Luis · Monitoreo y calidad | `paginas/luis.py:31` (agregado en este entregable) |
 | Carlos · Valor y presupuesto | `paginas/carlos.py:28` |
 | Clientes prioritarios | `paginas/clientes.py:49` |
